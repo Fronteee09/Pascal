@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal - Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 36px 30px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: #c9d1d9;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #58a6ff;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: #238636;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #2ea043;
+        }
+
+        .btn-secondary {
+            background-color: #21262d;
+            color: #58a6ff;
+            border-color: #30363d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #30363d;
+            border-color: #58a6ff;
+        }
+
+        .btn-danger {
+            background-color: #da3633;
+            color: #ffffff;
+            margin-top: 16px;
+        }
+
+        .btn-danger:hover {
+            background-color: #f85149;
+        }
+
+        .status-msg {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .error { color: #f85149; }
+        .success { color: #3fb950; }
+
+        .back-link {
+            margin-top: 20px;
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: #58a6ff;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-box">
+        <!-- Schermata Accesso / Registrazione -->
+        <div id="auth-form">
+            <h1>Account Pascal</h1>
+            <p class="subtitle">Accedi o crea un profilo con solo nickname e password.</p>
+
+            <div class="input-group">
+                <label for="nickname">Nickname</label>
+                <input type="text" id="nickname" placeholder="es. marco99" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password (min. 6 caratteri)</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <div class="btn-group">
+                <button id="login-btn" class="btn-primary">Accedi</button>
+                <button id="register-btn" class="btn-secondary">Crea nuovo account</button>
+            </div>
+        </div>
+
+        <!-- Schermata Utente Loggato -->
+        <div id="user-panel" class="hidden" style="text-align: center;">
+            <h1>Ciao, <span id="display-nick" style="color: #58a6ff;"></span>!</h1>
+            <p class="subtitle" style="margin-top: 8px;">Sei connesso al tuo spazio Pascal.</p>
+            <button id="logout-btn" class="btn-danger">Esci dall'account</button>
+        </div>
+
+        <p id="status" class="status-msg"></p>
+    </div>
+
+    <a href="index.html" class="back-link">← Torna alla Home</a>
+
+    <!-- Script Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged,
+            updateProfile 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
+            authDomain: "pascal-b0d51.firebaseapp.com",
+            projectId: "pascal-b0d51",
+            storageBucket: "pascal-b0d51.firebasestorage.app",
+            messagingSenderId: "216010606072",
+            appId: "1:216010606072:web:faeecf8f2f806ce9c3820d",
+            measurementId: "G-SCN8C392NJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Elementi DOM
+        const authForm = document.getElementById('auth-form');
+        const userPanel = document.getElementById('user-panel');
+        const displayNick = document.getElementById('display-nick');
+        const statusMsg = document.getElementById('status');
+        const nickInput = document.getElementById('nickname');
+        const passInput = document.getElementById('password');
+
+        // Converte il nickname in una finta email per Firebase
+        function formatFakeEmail(nickname) {
+            // Rimuove spazi e caratteri speciali per evitare errori di formato email
+            const cleanNick = nickname.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+            return `${cleanNick}@pascal.local`;
+        }
+
+        function showMessage(text, isError = false) {
+            statusMsg.textContent = text;
+            statusMsg.className = isError ? 'status-msg error' : 'status-msg success';
+        }
+
+        // Registrazione
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const nick = nickInput.value.trim();
+            const pass = passInput.value;
+
+            if (nick.length < 3) {
+                return showMessage("Il nickname deve avere almeno 3 caratteri.", true);
+            }
+            if (pass.length < 6) {
+                return showMessage("La password deve essere di almeno 6 caratteri.", true);
+            }
+
+            const fakeEmail = formatFakeEmail(nick);
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, pass);
+                // Salviamo il nickname originale nel profilo utente
+                await updateProfile(userCredential.user, { displayName: nick });
+                displayNick.textContent = nick;
+                showMessage("Account creato con successo!");
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    showMessage("Questo nickname è già stato preso.", true);
+                } else {
+                    showMessage("Errore: " + error.message, true);
+                }
+            }
+        });
+
+        // Login
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const nick = nickInput.value.trim();
+            const pass = passInput.value;
+
+            if (!nick || !pass) {
+                return showMessage("Inserisci nickname e password.", true);
+            }
+
+            const fakeEmail = formatFakeEmail(nick);
+
+            try {
+                await signInWithEmailAndPassword(auth, fakeEmail, pass);
+                showMessage("");
+            } catch (error) {
+                showMessage("Nickname o password errati.", true);
+            }
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await signOut(auth);
+            nickInput.value = '';
+            passInput.value = '';
+            showMessage("Disconnesso.");
+        });
+
+        // Controlla se l'utente è già loggato
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authForm.classList.add('hidden');
+                userPanel.classList.remove('hidden');
+                displayNick.textContent = user.displayName || user.email.split('@')[0];
+            } else {
+                authForm.classList.remove('hidden');
+                userPanel.classList.add('hidden');
+            }
+        });
+    </script>
+
+</body>
+</html>
