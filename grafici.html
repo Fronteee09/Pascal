@@ -82,7 +82,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 24px;
-            display: none; /* Nascosto di default finché non c'è corrispondenza UID */
+            display: none; /* Visibile solo all'Admin */
         }
 
         #create-post-box h3 { margin-bottom: 12px; font-size: 1.1rem; color: #58a6ff; }
@@ -239,7 +239,7 @@
             </div>
         </header>
 
-        <!-- Form Pubblicazione (Visibile solo per il tuo UID autorizzato) -->
+        <!-- Form Pubblicazione (Riservato all'Admin) -->
         <div id="create-post-box">
             <h3>Crea Post, Grafico o Sondaggio (Amministratore)</h3>
             <div class="input-group">
@@ -328,7 +328,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Il tuo UID autorizzato
+        // UID autorizzato per la pubblicazione
         const ADMIN_UID = "RDazAVYByPNOQWKLNBSeLNittRn1";
 
         let allPosts = [];
@@ -371,15 +371,16 @@
             itemsContainer.appendChild(row);
         }
 
+        // Righe iniziali di default
         addItemRow('Elemento 1', '10', '#238636');
         addItemRow('Elemento 2', '20', '#58a6ff');
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user && user.uid === ADMIN_UID) {
-                createPostBox.style.display = 'block'; // Mostra il form solo se sei tu
+                createPostBox.style.display = 'block';
             } else {
-                createPostBox.style.display = 'none';  // Nascosto per chiunque altro
+                createPostBox.style.display = 'none';
             }
             loadPosts();
         });
@@ -462,7 +463,6 @@
                 }
 
                 html += `<div class="post-footer">`;
-                // Solo tu (Admin) puoi eliminare i post
                 if (currentUser && currentUser.uid === ADMIN_UID) {
                     html += `<button class="delete-btn" onclick="deletePost('${post.id}')">Elimina</button>`;
                 }
@@ -494,7 +494,21 @@
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    plugins: { legend: { labels: { color: '#e6edf3' } } }
+                                    plugins: {
+                                        legend: { labels: { color: '#e6edf3' } },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.raw || 0;
+                                                    const dataset = context.dataset.data;
+                                                    const total = dataset.reduce((acc, val) => acc + val, 0);
+                                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                    return `${label}: ${value} voti (${percentage}%)`;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             });
                         } catch (e) {
@@ -512,7 +526,24 @@
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    plugins: { legend: { labels: { color: '#e6edf3' } } },
+                                    plugins: {
+                                        legend: { labels: { color: '#e6edf3' } },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.raw || 0;
+                                                    if (post.chartData.type === 'pie') {
+                                                        const dataset = context.dataset.data;
+                                                        const total = dataset.reduce((acc, val) => acc + val, 0);
+                                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                        return `${label}: ${value} (${percentage}%)`;
+                                                    }
+                                                    return `${label}: ${value}`;
+                                                }
+                                            }
+                                        }
+                                    },
                                     scales: post.chartData.type !== 'pie' ? {
                                         x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
                                         y: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } }
