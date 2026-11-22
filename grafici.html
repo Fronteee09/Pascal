@@ -108,4 +108,354 @@
         .post-card {
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .post-title { font-size: 1.25rem; font-weight: 600; color: #ffffff; }
+        
+        .post-tag {
+            background-color: #21262d;
+            color: #58a6ff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            border: 1px solid #30363d;
+        }
+
+        .post-desc { color: #8b949e; font-size: 0.95rem; margin-bottom: 16px; }
+        .chart-wrapper { position: relative; max-width: 400px; margin: 0 auto 16px auto; }
+        .post-footer { display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #21262d; padding-top: 12px; }
+
+        .like-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .like-btn:hover { background-color: #30363d; color: #f85149; }
+        .like-btn.liked { color: #f85149; border-color: #f85149; }
+
+        .data-inputs-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pascal Grafici</h1>
+            <a href="index.html" class="back-link">← Torna alla Home</a>
+        </header>
+
+        <div class="filter-box">
+            <input type="text" id="search-input" placeholder="Cerca tra i titoli dei post...">
+            <div class="tags-container" id="tag-filters">
+                <button class="tag-btn active" data-tag="tutti">Tutti</button>
+                <button class="tag-btn" data-tag="Politica">Politica</button>
+                <button class="tag-btn" data-tag="Economia">Economia</button>
+                <button class="tag-btn" data-tag="Sondaggi casuali">Sondaggi casuali</button>
+                <button class="tag-btn" data-tag="Benessere">Benessere</button>
+                <button class="tag-btn" data-tag="Informazioni">Informazioni</button>
+                <button class="tag-btn" data-tag="Notizie">Notizie</button>
+            </div>
+        </div>
+
+        <div id="creator-panel">
+            <h3>Crea Nuovo Post con Grafico</h3>
+            <div class="form-group">
+                <label>Titolo del Post</label>
+                <input type="text" id="post-title" placeholder="Es. Trend Economico 2026">
+            </div>
+            <div class="form-group">
+                <label>Descrizione</label>
+                <textarea id="post-desc" rows="2" placeholder="Breve descrizione del grafico..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tag</label>
+                <select id="post-tag-select">
+                    <option value="Politica">Politica</option>
+                    <option value="Economia">Economia</option>
+                    <option value="Sondaggi casuali">Sondaggi casuali</option>
+                    <option value="Benessere">Benessere</option>
+                    <option value="Informazioni">Informazioni</option>
+                    <option value="Notizie">Notizie</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo di Grafico</label>
+                <select id="chart-type">
+                    <option value="pie">A torta (Pie)</option>
+                    <option value="bar">Scale / Barre (Bar)</option>
+                    <option value="line">Piano Cartesiano / Linee (Line)</option>
+                    <option value="table">Tabella Dati</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Numero di elementi</label>
+                <input type="number" id="num-items" min="1" max="10" value="3">
+            </div>
+            <div id="dynamic-items-container" class="form-group"></div>
+            <button class="btn" id="publish-btn">Pubblica Post</button>
+        </div>
+
+        <div id="posts-feed">
+            <p style="text-align:center; color:#8b949e;">Caricamento post...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            doc, 
+            updateDoc, 
+            arrayUnion, 
+            arrayRemove, 
+            serverTimestamp, 
+            addDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
+            authDomain: "pascal-b0d51.firebaseapp.com",
+            projectId: "pascal-b0d51",
+            storageBucket: "pascal-b0d51.firebasestorage.app",
+            messagingSenderId: "216010606072",
+            appId: "1:216010606072:web:faeecf8f2f806ce9c3820d",
+            measurementId: "G-SCN8C392NJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Inserisci il nickname esatto del tuo account admin
+        const AUTHORIZED_NICKNAME = "pascal"; 
+
+        let currentUser = null;
+        let allPosts = [];
+        let activeTagFilter = "tutti";
+        let searchQuery = "";
+
+        const creatorPanel = document.getElementById('creator-panel');
+        const numItemsInput = document.getElementById('num-items');
+        const dynamicItemsContainer = document.getElementById('dynamic-items-container');
+        const postsFeed = document.getElementById('posts-feed');
+        const searchInput = document.getElementById('search-input');
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user && user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
+                creatorPanel.style.display = 'block';
+            } else {
+                creatorPanel.style.display = 'none';
+            }
+            loadPosts();
+        });
+
+        function renderItemInputs() {
+            const count = parseInt(numItemsInput.value) || 1;
+            let html = '<label>Inserisci Nome, Valore e Colore</label>';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="data-inputs-grid">
+                        <input type="text" placeholder="Nome ${i+1}" class="item-name" value="Elemento ${i+1}">
+                        <input type="number" placeholder="Valore" class="item-value" value="10">
+                        <input type="color" class="item-color" value="${['#58a6ff', '#238636', '#f85149', '#d29922', '#a371f7'][i % 5]}">
+                    </div>
+                `;
+            }
+            dynamicItemsContainer.innerHTML = html;
+        }
+
+        numItemsInput.addEventListener('input', renderItemInputs);
+        renderItemInputs();
+
+        document.getElementById('publish-btn').addEventListener('click', async () => {
+            if (!currentUser || currentUser.email !== `${AUTHORIZED_NICKNAME}@pascal.local`) return alert("Non autorizzato.");
+
+            const title = document.getElementById('post-title').value.trim();
+            const desc = document.getElementById('post-desc').value.trim();
+            const tag = document.getElementById('post-tag-select').value;
+            const chartType = document.getElementById('chart-type').value;
+
+            if (!title) return alert("Inserisci un titolo.");
+
+            const names = document.querySelectorAll('.item-name');
+            const values = document.querySelectorAll('.item-value');
+            const colors = document.querySelectorAll('.item-color');
+
+            const labels = [];
+            const dataValues = [];
+            const backgroundColors = [];
+
+            names.forEach((el, index) => {
+                labels.push(el.value);
+                dataValues.push(parseFloat(values[index].value) || 0);
+                backgroundColors.push(colors[index].value);
+            });
+
+            const chartData = {
+                type: chartType,
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#30363d',
+                    borderWidth: 1
+                }]
+            };
+
+            try {
+                await addDoc(collection(db, "posts"), {
+                    title, desc, tag, chartData,
+                    likes: [],
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-desc').value = '';
+                alert("Post pubblicato con successo!");
+                loadPosts();
+            } catch (err) {
+                alert("Errore durante la pubblicazione: " + err.message);
+            }
+        });
+
+        async function loadPosts() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "posts"));
+                allPosts = [];
+                querySnapshot.forEach((docSnap) => {
+                    allPosts.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderPosts();
+            } catch (err) {
+                postsFeed.innerHTML = `<p style="text-align:center; color:#f85149;">Errore nel caricamento dei post: ${err.message}</p>`;
+            }
+        }
+
+        window.renderPosts = function() {
+            const filtered = allPosts.filter(post => {
+                const matchesTag = activeTagFilter === 'tutti' || post.tag === activeTagFilter;
+                const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesTag && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                postsFeed.innerHTML = `<p style="text-align:center; color:#8b949e; padding: 20px;">Nessun post trovato.</p>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(post => {
+                const isLiked = currentUser && post.likes && post.likes.includes(currentUser.uid);
+                const likeCount = post.likes ? post.likes.length : 0;
+
+                html += `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <span class="post-title">${escapeHtml(post.title)}</span>
+                            <span class="post-tag">${escapeHtml(post.tag)}</span>
+                        </div>
+                        <p class="post-desc">${escapeHtml(post.desc)}</p>
+                `;
+
+                if (post.chartData.type === 'table') {
+                    html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
+                        <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:8px;">Elemento</th><th style="padding:8px;">Valore</th></tr>`;
+                    post.chartData.labels.forEach((lbl, idx) => {
+                        html += `<tr style="border-bottom: 1px solid #21262d;"><td style="padding:8px;">${escapeHtml(lbl)}</td><td style="padding:8px;">${post.chartData.datasets[0].data[idx]}</td></tr>`;
+                    });
+                    html += `</table>`;
+                } else {
+                    html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
+                }
+
+                html += `
+                        <div class="post-footer">
+                            <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                                ❤ <span>${likeCount}</span> Like
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            postsFeed.innerHTML = html;
+
+            filtered.forEach(post => {
+                if (post.chartData.type !== 'table') {
+                    const ctx = document.getElementById(`chart-${post.id}`);
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: post.chartData.type,
+                            data: post.chartData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: { legend: { labels: { color: '#e6edf3' } } }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        window.toggleLike = async function(postId) {
+            if (!currentUser) return alert("Devi effettuare l'accesso per mettere un like!");
+
+            const postRef = doc(db, "posts", postId);
+            const post = allPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const likes = post.likes || [];
+            const hasLiked = likes.includes(currentUser.uid);
+
+            try {
+                if (hasLiked) {
+                    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
+                    post.likes = likes.filter(uid => uid !== currentUser.uid);
+                } else {
+                    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
+                    post.likes.push(currentUser.uid);
+                }
+                renderPosts();
+            } catch (err) {
+                alert("Errore nell'aggiornamento del like.");
+            }
+        };
+
+        document.querySelectorAll('.tag-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeTagFilter = e.target.getAttribute('data-tag');
+                renderPosts();
+            });
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderPosts();
+        });
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
