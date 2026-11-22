@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -101,7 +102,7 @@
         .status-msg { text-align: center; font-size: 0.9rem; margin-top: 10px; }
         .error { color: #f85149; }
         .success { color: #3fb950; }
-        
+
         #user-info { display: none; }
         #login-section { display: none; }
     </style>
@@ -129,6 +130,11 @@
                 <input type="password" id="login-password" placeholder="••••••••">
             </div>
             <button id="login-btn" class="btn-main">Accedi</button>
+
+            <button id="register-btn" class="btn-main" style="background-color: #1f6feb;">
+                Crea account
+            </button>
+
             <p id="login-status" class="status-msg"></p>
         </div>
 
@@ -136,7 +142,7 @@
         <div id="user-info" class="card">
             <h3>Area Personale</h3>
             <p id="user-email-display" style="margin-bottom: 16px; color: #8b949e; font-size: 0.95rem;"></p>
-            
+
             <div style="border-top: 1px solid #30363d; padding-top: 16px; margin-top: 16px;">
                 <h3 style="font-size: 1rem; color: #ffffff; margin-bottom: 8px;">Notifiche Push</h3>
                 <p style="font-size: 0.85rem; color: #8b949e; margin-bottom: 12px;">Attiva le notifiche per ricevere aggiornamenti in tempo reale sul tuo dispositivo.</p>
@@ -152,7 +158,15 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
         import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
         const firebaseConfig = {
@@ -200,10 +214,57 @@
             try {
                 statusEl.textContent = "Accesso in corso...";
                 statusEl.className = "status-msg";
+
                 await signInWithEmailAndPassword(auth, email, password);
+
                 statusEl.textContent = "";
             } catch (err) {
                 statusEl.textContent = "Errore: " + err.message;
+                statusEl.className = "status-msg error";
+            }
+        });
+
+        // Registrazione Account
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const statusEl = document.getElementById('login-status');
+
+            if (!email || !password) {
+                statusEl.textContent = "Inserisci email e password.";
+                statusEl.className = "status-msg error";
+                return;
+            }
+
+            if (password.length < 6) {
+                statusEl.textContent = "La password deve contenere almeno 6 caratteri.";
+                statusEl.className = "status-msg error";
+                return;
+            }
+
+            try {
+                statusEl.textContent = "Creazione account in corso...";
+                statusEl.className = "status-msg";
+
+                await createUserWithEmailAndPassword(auth, email, password);
+
+                statusEl.textContent = "Account creato con successo!";
+                statusEl.className = "status-msg success";
+
+            } catch (err) {
+                let message = "Errore durante la registrazione.";
+
+                if (err.code === "auth/email-already-in-use") {
+                    message = "Questa email è già registrata.";
+                } else if (err.code === "auth/invalid-email") {
+                    message = "Indirizzo email non valido.";
+                } else if (err.code === "auth/weak-password") {
+                    message = "Password troppo debole.";
+                } else if (err.code === "auth/operation-not-allowed") {
+                    message = "Registrazione email/password non abilitata su Firebase.";
+                }
+
+                statusEl.textContent = message;
                 statusEl.className = "status-msg error";
             }
         });
@@ -220,7 +281,7 @@
         // Attivazione Notifiche Push
         document.getElementById('notif-btn').addEventListener('click', async () => {
             const statusEl = document.getElementById('notif-status');
-            
+
             if (!('serviceWorker' in navigator)) {
                 statusEl.textContent = "Il tuo browser non supporta i Service Worker.";
                 statusEl.className = "status-msg error";
@@ -236,9 +297,9 @@
                 const swPath = pathSegments.length > 1 ? `/${pathSegments[0]}/firebase-messaging-sw.js` : '/firebase-messaging-sw.js';
 
                 const registration = await navigator.serviceWorker.register(swPath);
-                
+
                 const currentToken = await getToken(messaging, {
-                    vapidKey: 'BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzahK6VKGw',
+                    vapidKey: 'BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzah6KVGw',
                     serviceWorkerRegistration: registration
                 });
 
