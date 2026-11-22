@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pascal - Mappe</title>
+    <title>Pascal - Mappe e Territorio</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
+    <!-- Leaflet CSS per la mappa interattiva open source -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <style>
         * {
             margin: 0;
@@ -25,85 +27,70 @@
             align-items: center;
         }
 
-        .container { width: 100%; max-width: 1000px; }
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             border-bottom: 1px solid #30363d;
             padding-bottom: 16px;
         }
 
         h1 { font-size: 1.8rem; color: #ffffff; }
-        .back-link { color: #58a6ff; text-decoration: none; font-size: 0.95rem; }
-        .back-link:hover { text-decoration: underline; }
 
-        #map {
-            width: 100%;
-            height: 500px;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-            margin-bottom: 24px;
-            background-color: #161b22;
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-left: 15px;
         }
+        .nav-links a:hover { text-decoration: underline; }
 
-        #admin-panel {
+        .card {
             background-color: #161b22;
-            border: 1px solid #1f6feb;
+            border: 1px solid #30363d;
             border-radius: 12px;
             padding: 20px;
-            display: none;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        #admin-panel h3 { margin-bottom: 14px; color: #58a6ff; }
+        .card h3 { margin-bottom: 12px; font-size: 1.1rem; color: #58a6ff; }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        @media(max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-        }
-
-        input, select {
+        /* Contenitore della Mappa */
+        #map {
             width: 100%;
-            padding: 10px 14px;
-            background-color: #0d1117;
+            height: 400px;
+            border-radius: 8px;
             border: 1px solid #30363d;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 0.95rem;
-            outline: none;
+            z-index: 1;
         }
-        input:focus, select:focus { border-color: #58a6ff; }
 
-        .btn {
-            background-color: #238636;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 600;
+        .locations-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .loc-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
+            font-size: 0.85rem;
+            transition: all 0.2s;
         }
-        .btn:hover { background-color: #2ea043; }
-
-        .info-box {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 0.95rem;
-            color: #8b949e;
-            text-align: center;
+        .loc-btn:hover {
+            background-color: #30363d;
+            color: #ffffff;
+            border-color: #58a6ff;
         }
     </style>
 </head>
@@ -111,157 +98,63 @@
 
     <div class="container">
         <header>
-            <h1>Pascal Mappe Geografiche</h1>
-            <a href="index.html" class="back-link">← Torna alla Home</a>
+            <h1>Pascal Mappe</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="grafici.html">Grafici</a>
+                <a href="account.html">Account</a>
+            </div>
         </header>
 
-        <div id="admin-panel">
-            <h3>Gestione Dati Nazionali (Admin)</h3>
-            <div class="form-grid">
-                <input type="text" id="country-name" placeholder="Nome Nazione (es. Italy, France)">
-                <input type="number" id="country-percentage" placeholder="Percentuale %" min="0" max="100">
-                <input type="color" id="country-color" value="#58a6ff" style="height: 42px; padding: 4px;">
-                <button class="btn" id="save-country-btn">Salva Dati</button>
+        <div class="card">
+            <h3>Mappa Interattiva</h3>
+            <p style="font-size: 0.9rem; color: #8b949e; margin-bottom: 14px;">Esplora la mappa o seleziona una delle sedi principali qui sotto per centrare la visuale.</p>
+            
+            <!-- Div in cui Leaflet caricherà la mappa -->
+            <div id="map"></div>
+
+            <div class="locations-list">
+                <button class="loc-btn" onclick="panToLocation(45.4642, 9.1900, 'Milano - Sede Centrale', 'Sede principale di coordinamento.')">Milano</button>
+                <button class="loc-btn" onclick="panToLocation(41.9028, 12.4964, 'Roma - Hub Operativo', 'Centro logistico e di controllo.')">Roma</button>
+                <button class="loc-btn" onclick="panToLocation(45.0703, 7.6869, 'Torino - Sede Nord-Ovest', 'Polo tecnologico e di sviluppo.')">Torino</button>
+                <button class="loc-btn" onclick="panToLocation(43.7696, 11.2558, 'Firenze - Hub Centro', 'Centro studi e documentazione.')">Firenze</button>
             </div>
-            <p style="font-size: 0.85rem; color: #8b949e;">Inserisci il nome in inglese della nazione (es. Italy, United States, Germany).</p>
-        </div>
-
-        <div id="map"></div>
-
-        <div class="info-box">
-            <p id="map-status">Caricamento mappa in corso...</p>
         </div>
     </div>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E&callback=initMap"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Inizializzazione della mappa centrata sull'Italia
+        const map = L.map('map').setView([42.5, 12.5], 6);
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Aggiungiamo i layer delle Tile di OpenStreetMap (stile scuro pulito o standard)
+        // Usiamo un tema scuro compatibile con il design di Pascal
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd'
+        }).addTo(map);
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
-            authDomain: "pascal-b0d51.firebaseapp.com",
-            projectId: "pascal-b0d51",
-            storageBucket: "pascal-b0d51.firebasestorage.app",
-            messagingSenderId: "216010606072",
-            appId: "1:216010606072:web:faeecf8f2f806ce9c3820d",
-            measurementId: "G-SCN8C392NJ"
+        // Array di punti di interesse predefiniti
+        const places = [
+            { lat: 45.4642, lng: 9.1900, title: "Milano - Sede Centrale", desc: "Sede principale di coordinamento." },
+            { lat: 41.9028, lng: 12.4964, title: "Roma - Hub Operativo", desc: "Centro logistico e di controllo." },
+            { lat: 45.0703, lng: 7.6869, title: "Torino - Sede Nord-Ovest", desc: "Polo tecnologico e di sviluppo." },
+            { lat: 43.7696, lng: 11.2558, title: "Firenze - Hub Centro", desc: "Centro studi e documentazione." }
+        ];
+
+        // Aggiungiamo i marker sulla mappa
+        places.forEach(place => {
+            const marker = L.marker([place.lat, place.lng]).addTo(map);
+            marker.bindPopup(`<b>${place.title}</b><br>${place.desc}`);
+        });
+
+        // Funzione globale per spostare la mappa cliccando sui bottoni
+        window.panToLocation = function(lat, lng, title, desc) {
+            map.setView([lat, lng], 13);
+            // Trova e apre il popup corrispondente se si vuole, o semplicemente sposta
         };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        const AUTHORIZED_NICKNAME = "fronte";
-
-        let map;
-        let countryData = {};
-
-        window.initMap = async function() {
-            const darkMapStyle = [
-                { elementType: "geometry", stylers: [{ color: "#1d2128" }] },
-                { elementType: "labels.text.stroke", stylers: [{ color: "#1a1919" }] },
-                { elementType: "labels.text.fill", stylers: [{ color: "#8b949e" }] },
-                {
-                    featureType: "administrative.country",
-                    elementType: "geometry.stroke",
-                    stylers: [{ color: "#30363d" }, { strokeWeight: 1.5 }]
-                },
-                { featureType: "water", elementType: "geometry", stylers: [{ color: "#0d1117" }] }
-            ];
-
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 2,
-                center: { lat: 20, lng: 0 },
-                styles: darkMapStyle,
-                mapTypeControl: false
-            });
-
-            document.getElementById('map-status').textContent = "Mappa caricata. Sincronizzazione dati...";
-            await loadCountryDataFromFirestore();
-        }
-
-        async function loadCountryDataFromFirestore() {
-            try {
-                const querySnapshot = await getDocs(collection(db, "map_countries"));
-                countryData = {};
-                querySnapshot.forEach((docSnap) => {
-                    countryData[docSnap.id] = docSnap.data();
-                });
-
-                applyMapStyling();
-                document.getElementById('map-status').textContent = "Mappa aggiornata con i dati della community.";
-            } catch (err) {
-                document.getElementById('map-status').textContent = "Errore nel caricamento dei dati della mappa.";
-            }
-        }
-
-        function applyMapStyling() {
-            map.data.setStyle((feature) => {
-                let name = feature.getProperty('name') || feature.getProperty('NAME') || "";
-                let data = countryData[name];
-
-                if (data) {
-                    return {
-                        fillColor: data.color,
-                        fillOpacity: 0.6,
-                        strokeColor: '#ffffff',
-                        strokeWeight: 1
-                    };
-                } else {
-                    return {
-                        fillColor: '#21262d',
-                        fillOpacity: 0.3,
-                        strokeColor: '#30363d',
-                        strokeWeight: 0.5
-                    };
-                }
-            });
-
-            map.data.addListener('click', (event) => {
-                let name = event.feature.getProperty('name') || event.feature.getProperty('NAME') || "Nazione sconosciuta";
-                let data = countryData[name];
-                if (data) {
-                    alert(`${name}: ${data.percentage}%`);
-                } else {
-                    alert(`${name}: Nessun dato registrato.`);
-                }
-            });
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            const adminPanel = document.getElementById('admin-panel');
-            if (user && user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
-                adminPanel.style.display = 'block';
-            } else {
-                adminPanel.style.display = 'none';
-            }
-        });
-
-        document.getElementById('save-country-btn').addEventListener('click', async () => {
-            const nameInput = document.getElementById('country-name').value.trim();
-            const percentage = parseFloat(document.getElementById('country-percentage').value) || 0;
-            const color = document.getElementById('country-color').value;
-
-            if (!nameInput) return alert("Inserisci il nome della nazione.");
-
-            try {
-                await setDoc(doc(db, "map_countries", nameInput), {
-                    name: nameInput,
-                    percentage: percentage,
-                    color: color
-                });
-
-                alert(`Dati salvati per ${nameInput}!`);
-                document.getElementById('country-name').value = '';
-                document.getElementById('country-percentage').value = '';
-                await loadCountryDataFromFirestore();
-            } catch (err) {
-                alert("Errore durante il salvataggio: " + err.message);
-            }
-        });
     </script>
 </body>
 </html>
