@@ -207,6 +207,8 @@
             <div class="input-group">
                 <label>Tag</label>
                 <select id="post-tag">
+                    <option value="Notizie">Notizie</option>
+                    <option value="Economia">Economia</option>
                     <option value="Informatica">Informatica</option>
                     <option value="Sicurezza">Sicurezza</option>
                     <option value="Sicurezza digitale">Sicurezza digitale</option>
@@ -245,6 +247,8 @@
         <!-- Filtri Tag -->
         <div class="tags-bar">
             <button class="tag-btn active" data-tag="tutti">Tutti</button>
+            <button class="tag-btn" data-tag="Notizie">Notizie</button>
+            <button class="tag-btn" data-tag="Economia">Economia</button>
             <button class="tag-btn" data-tag="Informatica">Informatica</button>
             <button class="tag-btn" data-tag="Sicurezza">Sicurezza</button>
             <button class="tag-btn" data-tag="Sicurezza digitale">Sicurezza digitale</button>
@@ -313,7 +317,7 @@
                         id: docSnap.id,
                         title: data.title || "Senza titolo",
                         desc: data.desc || "",
-                        tag: data.tag || "Informatica",
+                        tag: data.tag || "Notizie",
                         likes: Array.isArray(data.likes) ? data.likes : [],
                         chartData: data.chartData || null
                     });
@@ -327,7 +331,7 @@
 
         window.renderPosts = function() {
             const filtered = allPosts.filter(post => {
-                const tag = post.tag || "Informatica";
+                const tag = post.tag || "Notizie";
                 const matchesTag = activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
                 return matchesTag;
             });
@@ -351,7 +355,6 @@
                         <p class="post-desc">${escapeHtml(post.desc)}</p>
                 `;
 
-                // Rendering se è una tabella
                 if (post.chartData && post.chartData.type === 'table') {
                     html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 14px; font-size:0.9rem;">
                         <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:6px;">Elemento</th><th style="padding:6px;">Valore</th></tr>`;
@@ -362,7 +365,6 @@
                     }
                     html += `</table>`;
                 } 
-                // Rendering se è un grafico Canvas (bar o line)
                 else if (post.chartData && post.chartData.type) {
                     html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
                 }
@@ -386,7 +388,6 @@
 
             postsFeed.innerHTML = html;
 
-            // Inizializzazione Chart.js per i grafici
             filtered.forEach(post => {
                 if (post.chartData && post.chartData.type && post.chartData.type !== 'table') {
                     const ctx = document.getElementById(`chart-${post.id}`);
@@ -449,7 +450,6 @@
             }
         };
 
-        // Pubblicazione Post con ChartData
         document.getElementById('publish-btn').addEventListener('click', async () => {
             const titleVal = document.getElementById('post-title').value.trim();
             const tagVal = document.getElementById('post-tag').value;
