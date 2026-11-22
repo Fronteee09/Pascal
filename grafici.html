@@ -101,6 +101,37 @@
         }
         input:focus, textarea:focus, select:focus { border-color: #58a6ff; }
 
+        /* Righe dinamiche per i dati personalizzati */
+        .item-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .item-row input[type="text"] { flex: 2; }
+        .item-row input[type="number"] { flex: 1; }
+        .item-row input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: none;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        button.btn-small {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #58a6ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        button.btn-small:hover { background-color: #30363d; }
+
         button.btn-main {
             background-color: #238636;
             color: white;
@@ -110,7 +141,7 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            margin-top: 6px;
+            margin-top: 12px;
         }
         button.btn-main:hover { background-color: #2ea043; }
 
@@ -199,12 +230,12 @@
             </div>
         </header>
 
-        <!-- Form Pubblicazione con Palette Colori -->
+        <!-- Form Pubblicazione con Generatore Dinamico Elementi e Colori -->
         <div id="create-post-box">
-            <h3>Nuovo Post / Grafico con Palette</h3>
+            <h3>Nuovo Post / Grafico Personalizzato</h3>
             <div class="input-group">
                 <label>Titolo del Post</label>
-                <input type="text" id="post-title" placeholder="Es. Statistiche Trimestrali">
+                <input type="text" id="post-title" placeholder="Es. Report Statistiche">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -221,45 +252,27 @@
                 <textarea id="post-desc" rows="2" placeholder="Scrivi una breve descrizione..."></textarea>
             </div>
 
-            <!-- Sezione Configurazione Grafico & Palette -->
-            <div style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
-                <div class="input-group">
-                    <label>Tipo di Grafico</label>
-                    <select id="chart-type">
-                        <option value="none">Nessun Grafico (Solo Testo)</option>
-                        <option value="bar">Grafico a Barre (Bar)</option>
-                        <option value="line">Grafico Cartesiano / Linee (Line)</option>
-                        <option value="pie">Grafico a Torta (Pie)</option>
-                        <option value="table">Tabella Dati</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Palette di Colori</label>
-                    <select id="chart-palette">
-                        <option value="github">GitHub Modern (Verde, Blu, Oro, Rosso)</option>
-                        <option value="neon">Neon Cyberpunk (Cian, Magenta, Viola)</option>
-                        <option value="ocean">Ocean Breeze (Tonalità di Azzurro)</option>
-                        <option value="sunset">Sunset Warm (Arancione, Giallo, Rosa)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>Etichette (separate da virgola)</label>
-                    <input type="text" id="chart-labels" placeholder="Es. Gennaio, Febbraio, Marzo, Aprile">
-                </div>
-                <div class="input-group">
-                    <label>Valori Numerici (separati da virgola)</label>
-                    <input type="text" id="chart-data" placeholder="Es. 12, 19, 3, 17">
-                </div>
-                <div class="input-group">
-                    <label>Riempimento Area (solo per grafico Linea)</label>
-                    <select id="chart-fill">
-                        <option value="false">Senza riempimento (Solo Linea)</option>
-                        <option value="true">Con area colorata sotto</option>
-                    </select>
-                </div>
+            <div class="input-group">
+                <label>Tipo di Visualizzazione</label>
+                <select id="chart-type">
+                    <option value="none">Nessun Grafico (Solo Testo)</option>
+                    <option value="bar">Grafico a Barre (Bar)</option>
+                    <option value="line">Grafico a Linee / Cartesiano (Line)</option>
+                    <option value="pie">Grafico a Torta (Pie)</option>
+                    <option value="table">Tabella Dati</option>
+                </select>
             </div>
 
-            <button id="publish-btn" class="btn-main">Pubblica Post con Grafico</button>
+            <!-- Sezione Riquadri Dinamici per Elementi, Nomi, Valori e Colori -->
+            <div style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
+                <label style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi, Valori e Colori:</label>
+                <div id="items-container">
+                    <!-- Le righe verranno generate dinamicamente qui -->
+                </div>
+                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Elemento</button>
+            </div>
+
+            <button id="publish-btn" class="btn-main">Pubblica Post</button>
             <p id="publish-status" class="status-msg"></p>
         </div>
 
@@ -315,14 +328,25 @@
 
         const postsFeed = document.getElementById('posts-feed');
         const createPostBox = document.getElementById('create-post-box');
+        const itemsContainer = document.getElementById('items-container');
 
-        // Palette predefinite pronte all'uso
-        const palettes = {
-            github: ['#238636', '#58a6ff', '#d29922', '#f85149', '#a371f7', '#3fb950', '#79c0ff'],
-            neon:   ['#00ffcc', '#ff007f', '#7928ca', '#ff4d4d', '#ffe600', '#0070f3', '#39full'],
-            ocean:  ['#0077b6', '#00b4d8', '#90e0ef', '#caf0f8', '#03045e', '#023e8a', '#48cae4'],
-            sunset: ['#ff7043', '#ffa726', '#ffca28', '#d4e157', '#ab47bc', '#ec407a', '#ff5722']
-        };
+        // Funzione per aggiungere una riga di input dinamica
+        window.addItemRow = function(name = '', value = '', color = '#58a6ff') {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Nome elemento" value="${name}" class="row-name">
+                <input type="number" placeholder="Valore" value="${value}" class="row-val">
+                <input type="color" value="${color}" class="row-color">
+                <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
+            `;
+            itemsContainer.appendChild(row);
+        }
+
+        // Avvia con 3 righe di default
+        addItemRow('Gennaio', '10', '#238636');
+        addItemRow('Febbraio', '20', '#58a6ff');
+        addItemRow('Marzo', '15', '#d29922');
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -486,10 +510,6 @@
             const tagVal = document.getElementById('post-tag').value;
             const descVal = document.getElementById('post-desc').value.trim();
             const chartTypeVal = document.getElementById('chart-type').value;
-            const paletteKey = document.getElementById('chart-palette').value;
-            const rawLabels = document.getElementById('chart-labels').value.trim();
-            const rawData = document.getElementById('chart-data').value.trim();
-            const fillVal = document.getElementById('chart-fill').value === 'true';
             const statusEl = document.getElementById('publish-status');
 
             if (!titleVal) {
@@ -500,30 +520,31 @@
 
             let chartDataObj = null;
             if (chartTypeVal !== 'none') {
-                const labelsArr = rawLabels ? rawLabels.split(',').map(s => s.trim()) : ["Voce 1", "Voce 2"];
-                const dataArr = rawData ? rawData.split(',').map(s => Number(s.trim())) : [10, 20];
-                
-                // Preleva i colori dalla palette scelta
-                const selectedPalette = palettes[paletteKey] || palettes.github;
+                const rows = document.querySelectorAll('.item-row');
+                const labels = [];
+                const data = [];
+                const colors = [];
 
-                let bgColors = selectedPalette;
-                let borderCol = '#30363d';
+                rows.forEach(row => {
+                    const name = row.querySelector('.row-name').value.trim() || 'Elemento';
+                    const val = parseFloat(row.querySelector('.row-val').value) || 0;
+                    const col = row.querySelector('.row-color').value;
 
-                if (chartTypeVal === 'line') {
-                    bgColors = fillVal ? 'rgba(88, 166, 255, 0.2)' : 'transparent';
-                    borderCol = selectedPalette[1] || '#58a6ff';
-                }
+                    labels.push(name);
+                    data.push(val);
+                    colors.push(col);
+                });
 
                 chartDataObj = {
                     type: chartTypeVal,
-                    labels: labelsArr,
+                    labels: labels,
                     datasets: [{
                         label: titleVal,
-                        data: dataArr,
-                        backgroundColor: bgColors,
-                        borderColor: borderCol,
-                        borderWidth: chartTypeVal === 'line' ? 2 : 1,
-                        fill: fillVal,
+                        data: data,
+                        backgroundColor: chartTypeVal === 'line' ? 'rgba(88, 166, 255, 0.2)' : colors,
+                        borderColor: chartTypeVal === 'line' ? (colors[0] || '#58a6ff') : '#30363d',
+                        borderWidth: 2,
+                        fill: chartTypeVal === 'line' ? true : false,
                         tension: 0.2
                     }]
                 };
@@ -544,11 +565,7 @@
 
                 document.getElementById('post-title').value = '';
                 document.getElementById('post-desc').value = '';
-                document.getElementById('chart-labels').value = '';
-                document.getElementById('chart-data').value = '';
-                document.getElementById('chart-type').value = 'none';
-
-                statusEl.textContent = "Post e grafico con palette pubblicati!";
+                statusEl.textContent = "Post pubblicato con successo!";
                 statusEl.className = "status-msg success";
 
                 loadPosts();
