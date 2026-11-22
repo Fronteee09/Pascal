@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pascal - Account</title>
+    <title>Pascal - Account & Notifiche</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
@@ -31,37 +31,18 @@
             border: 1px solid #30363d;
             border-radius: 16px;
             padding: 36px 30px;
-            max-width: 420px;
+            max-width: 460px;
             width: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        h1 {
-            font-size: 1.8rem;
-            text-align: center;
-            margin-bottom: 8px;
-            color: #ffffff;
-        }
+        h1 { font-size: 1.8rem; text-align: center; margin-bottom: 8px; color: #ffffff; }
+        .subtitle { text-align: center; color: #8b949e; font-size: 0.95rem; margin-bottom: 24px; }
 
-        .subtitle {
-            text-align: center;
-            color: #8b949e;
-            font-size: 0.95rem;
-            margin-bottom: 24px;
-        }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 6px; color: #c9d1d9; }
 
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-            color: #c9d1d9;
-        }
-
-        input {
+        input, textarea {
             width: 100%;
             padding: 12px 14px;
             background-color: #0d1117;
@@ -72,15 +53,9 @@
             outline: none;
             transition: border-color 0.2s;
         }
+        input:focus, textarea:focus { border-color: #58a6ff; }
 
-        input:focus { border-color: #58a6ff; }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 24px;
-        }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
 
         button {
             width: 100%;
@@ -95,40 +70,76 @@
 
         .btn-primary { background-color: #238636; color: #ffffff; }
         .btn-primary:hover { background-color: #2ea043; }
-
         .btn-secondary { background-color: #21262d; color: #58a6ff; border-color: #30363d; }
         .btn-secondary:hover { background-color: #30363d; border-color: #58a6ff; }
-
         .btn-danger { background-color: #da3633; color: #ffffff; margin-top: 16px; }
         .btn-danger:hover { background-color: #f85149; }
 
-        .status-msg {
-            margin-top: 16px;
+        /* Notifiche & Bottoni Pannello */
+        .notif-btn-container { position: relative; margin-top: 12px; }
+        .badge-dot {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #161b22;
+            display: none;
+        }
+        .badge-yellow { background-color: #d29922; }
+        .badge-blue { background-color: #58a6ff; }
+
+        /* Box Notifiche a scomparsa */
+        #notif-box {
+            display: none;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
             font-size: 0.9rem;
+        }
+        .notif-item { padding: 6px 0; border-bottom: 1px solid #21262d; color: #8b949e; }
+
+        /* Pop-up Annunci Ufficiali */
+        #announcement-popup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .popup-content {
+            background: #161b22;
+            border: 2px solid #58a6ff;
+            padding: 24px;
+            border-radius: 14px;
+            max-width: 400px;
+            width: 90%;
             text-align: center;
-            min-height: 20px;
         }
 
+        .status-msg { margin-top: 16px; font-size: 0.9rem; text-align: center; min-height: 20px; }
         .error { color: #f85149; }
         .success { color: #3fb950; }
 
-        .back-link {
-            margin-top: 20px;
-            color: #8b949e;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
+        .back-link { margin-top: 20px; color: #8b949e; text-decoration: none; font-size: 0.9rem; display: block; text-align: center; }
         .back-link:hover { color: #58a6ff; }
-
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
     <div class="auth-box">
+        <!-- Form Login/Registrazione -->
         <div id="auth-form">
             <h1>Account Pascal</h1>
-            <p class="subtitle">Accedi o crea un profilo con solo nickname e password.</p>
+            <p class="subtitle">Accedi o crea un profilo con nickname e password.</p>
 
             <div class="input-group">
                 <label for="nickname">Nickname</label>
@@ -146,9 +157,26 @@
             </div>
         </div>
 
+        <!-- Pannello Utente Connesso -->
         <div id="user-panel" class="hidden" style="text-align: center;">
             <h1>Ciao, <span id="display-nick" style="color: #58a6ff;"></span>!</h1>
-            <p class="subtitle" style="margin-top: 8px;">Sei connesso al tuo spazio Pascal.</p>
+            <p class="subtitle" style="margin-top: 4px;">Area personale Pascal</p>
+
+            <!-- Tasto Notifiche Post (Pallino Giallo) -->
+            <div class="notif-btn-container">
+                <button id="toggle-notif-btn" class="btn-secondary">
+                    Notifiche Nuovi Post <span id="dot-yellow" class="badge-dot badge-yellow"></span>
+                </button>
+                <div id="notif-box">Caricamento notifiche...</div>
+            </div>
+
+            <!-- Pannello Admin per inviare Annunci Ufficiali (Visibile solo a Fronte) -->
+            <div id="admin-broadcast-panel" class="hidden" style="margin-top: 20px; border-top: 1px solid #30363d; padding-top: 16px; text-align: left;">
+                <label style="color: #58a6ff; font-weight: 600;">Invia Annuncio Ufficiale (Mod)</label>
+                <textarea id="broadcast-text" rows="2" placeholder="Scrivi un annuncio per tutti gli utenti..." style="margin-top: 6px; margin-bottom: 8px;"></textarea>
+                <button id="send-broadcast-btn" class="btn-primary" style="padding: 8px;">Invia Annuncio (Pallino Blu)</button>
+            </div>
+
             <button id="logout-btn" class="btn-danger">Esci dall'account</button>
         </div>
 
@@ -156,6 +184,15 @@
     </div>
 
     <a href="index.html" class="back-link">← Torna alla Home</a>
+
+    <!-- Pop-up Annuncio Ufficiale (Per gli utenti) -->
+    <div id="announcement-popup">
+        <div class="popup-content">
+            <h3 style="color: #58a6ff; margin-bottom: 10px;">📢 Annuncio Ufficiale</h3>
+            <p id="popup-message" style="margin-bottom: 16px; color: #e6edf3;"></p>
+            <button id="close-popup-btn" class="btn-primary">Ho capito</button>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -167,6 +204,16 @@
             onAuthStateChanged,
             updateProfile 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            setDoc, 
+            doc, 
+            getDoc,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
@@ -180,6 +227,9 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const AUTHORIZED_NICKNAME = "fronte";
 
         const authForm = document.getElementById('auth-form');
         const userPanel = document.getElementById('user-panel');
@@ -187,10 +237,14 @@
         const statusMsg = document.getElementById('status');
         const nickInput = document.getElementById('nickname');
         const passInput = document.getElementById('password');
+        const dotYellow = document.getElementById('dot-yellow');
+        const notifBox = document.getElementById('notif-box');
+        const adminBroadcastPanel = document.getElementById('admin-broadcast-panel');
+        const announcementPopup = document.getElementById('announcement-popup');
+        const popupMessage = document.getElementById('popup-message');
 
         function formatFakeEmail(nickname) {
-            const cleanNick = nickname.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
-            return `${cleanNick}@pascal.local`;
+            return `${nickname.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '')}@pascal.local`;
         }
 
         function showMessage(text, isError = false) {
@@ -198,61 +252,115 @@
             statusMsg.className = isError ? 'status-msg error' : 'status-msg success';
         }
 
+        // Gestione Registrazione e Login
         document.getElementById('register-btn').addEventListener('click', async () => {
             const nick = nickInput.value.trim();
             const pass = passInput.value;
-
-            if (nick.length < 3) return showMessage("Il nickname deve avere almeno 3 caratteri.", true);
-            if (pass.length < 6) return showMessage("La password deve essere di almeno 6 caratteri.", true);
-
-            const fakeEmail = formatFakeEmail(nick);
+            if (nick.length < 3 || pass.length < 6) return showMessage("Nickname (min 3) o password (min 6) non validi.", true);
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, pass);
-                await updateProfile(userCredential.user, { displayName: nick });
-                displayNick.textContent = nick;
+                const cred = await createUserWithEmailAndPassword(auth, formatFakeEmail(nick), pass);
+                await updateProfile(cred.user, { displayName: nick });
                 showMessage("Account creato con successo!");
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    showMessage("Questo nickname è già stato preso.", true);
-                } else {
-                    showMessage("Errore: " + error.message, true);
-                }
+            } catch (err) {
+                showMessage("Errore: " + err.message, true);
             }
         });
 
         document.getElementById('login-btn').addEventListener('click', async () => {
             const nick = nickInput.value.trim();
             const pass = passInput.value;
-
-            if (!nick || !pass) return showMessage("Inserisci nickname e password.", true);
-
-            const fakeEmail = formatFakeEmail(nick);
+            if (!nick || !pass) return showMessage("Inserisci dati validi.", true);
 
             try {
-                await signInWithEmailAndPassword(auth, fakeEmail, pass);
+                await signInWithEmailAndPassword(auth, formatFakeEmail(nick), pass);
                 showMessage("");
-            } catch (error) {
+            } catch (err) {
                 showMessage("Nickname o password errati.", true);
             }
         });
 
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await signOut(auth);
-            nickInput.value = '';
-            passInput.value = '';
-            showMessage("Disconnesso.");
+            nickInput.value = ''; passInput.value = '';
         });
 
-        onAuthStateChanged(auth, (user) => {
+        // Stato Autenticazione & Caricamento Notifiche/Annunci
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 authForm.classList.add('hidden');
                 userPanel.classList.remove('hidden');
-                displayNick.textContent = user.displayName || user.email.split('@')[0];
+                const nick = user.displayName || user.email.split('@')[0];
+                displayNick.textContent = nick;
+
+                // Controlla se è l'admin Fronte
+                if (user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
+                    adminBroadcastPanel.classList.remove('hidden');
+                }
+
+                await checkNotificationsAndAnnouncements(user.uid);
             } else {
                 authForm.classList.remove('hidden');
                 userPanel.classList.add('hidden');
             }
+        });
+
+        // Controlla notifiche post e annunci
+        async function checkNotificationsAndAnnouncements(uid) {
+            try {
+                // Carica notifiche post
+                const notifSnap = await getDocs(collection(db, "posts"));
+                let html = "";
+                if (!notifSnap.empty) {
+                    dotYellow.style.display = 'block'; // Pallino giallo nuovi post
+                    notifSnap.forEach(doc => {
+                        const post = doc.data();
+                        html += `<div class="notif-item"><b>Nuovo post:</b> ${post.title}</div>`;
+                    });
+                } else {
+                    html = `<div class="notif-item">Nessuna notifica.</div>`;
+                }
+                notifBox.innerHTML = html;
+
+                // Controlla Annunci Ufficiali attivi
+                const announceDoc = await getDoc(doc(db, "settings", "announcement"));
+                if (announceDoc.exists()) {
+                    const data = announceDoc.data();
+                    // Mostra il pop-up se l'annuncio è nuovo per questo utente
+                    popupMessage.textContent = data.text;
+                    announcementPopup.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Mostra/Nascondi box notifiche post
+        document.getElementById('toggle-notif-btn').addEventListener('click', () => {
+            notifBox.style.display = notifBox.style.display === 'block' ? 'none' : 'block';
+            dotYellow.style.display = 'none'; // Rimuove il pallino quando lette
+        });
+
+        // Admin invia annuncio ufficiale (Pallino Blu)
+        document.getElementById('send-broadcast-btn').addEventListener('click', async () => {
+            const text = document.getElementById('broadcast-text').value.trim();
+            if (!text) return alert("Scrivi un testo per l'annuncio.");
+
+            try {
+                await setDoc(doc(db, "settings", "announcement"), {
+                    text: text,
+                    createdAt: serverTimestamp()
+                });
+                alert("Annuncio ufficiale inviato a tutti gli utenti!");
+                document.getElementById('broadcast-text').value = '';
+            } catch (err) {
+                alert("Errore: " + err.message);
+            }
+        });
+
+        // Chiudi pop-up annuncio
+        document.getElementById('close-popup-btn').addEventListener('click', () => {
+            announcementPopup.style.display = 'none';
         });
     </script>
 </body>
