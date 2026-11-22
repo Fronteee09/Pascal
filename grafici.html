@@ -75,7 +75,7 @@
             border-color: #2ea043;
         }
 
-        /* Form Creazione Post (Visibile solo se loggati) */
+        /* Form Creazione Post & Grafici */
         #create-post-box {
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -110,6 +110,7 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
+            margin-top: 6px;
         }
         button.btn-main:hover { background-color: #2ea043; }
 
@@ -143,7 +144,7 @@
 
         .chart-wrapper {
             position: relative;
-            max-height: 300px;
+            max-height: 250px;
             margin-bottom: 14px;
         }
 
@@ -153,11 +154,6 @@
             align-items: center;
             border-top: 1px solid #21262d;
             padding-top: 10px;
-        }
-
-        .post-actions {
-            display: flex;
-            gap: 8px;
         }
 
         .like-btn {
@@ -201,12 +197,12 @@
             </div>
         </header>
 
-        <!-- Form Pubblicazione (Solo per utenti autenticati) -->
+        <!-- Form Pubblicazione con Grafico -->
         <div id="create-post-box">
             <h3>Nuovo Post / Grafico</h3>
             <div class="input-group">
-                <label>Titolo</label>
-                <input type="text" id="post-title" placeholder="Es. Analisi di sicurezza 2026">
+                <label>Titolo del Post</label>
+                <input type="text" id="post-title" placeholder="Es. Statistiche Server 2026">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -220,7 +216,29 @@
                 <label>Descrizione</label>
                 <textarea id="post-desc" rows="2" placeholder="Scrivi una breve descrizione..."></textarea>
             </div>
-            <button id="publish-btn" class="btn-main">Pubblica Post</button>
+
+            <!-- Sezione Configurazione Grafico -->
+            <div style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
+                <div class="input-group">
+                    <label>Tipo di Grafico</label>
+                    <select id="chart-type">
+                        <option value="none">Nessun Grafico (Solo Testo)</option>
+                        <option value="bar">Grafico a Barre (Bar)</option>
+                        <option value="line">Grafico a Linee (Line)</option>
+                        <option value="table">Tabella Dati</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Etichette (separate da virgola)</label>
+                    <input type="text" id="chart-labels" placeholder="Es. Gennaio, Febbraio, Marzo, Aprile">
+                </div>
+                <div class="input-group">
+                    <label>Valori numerici (separati da virgola)</label>
+                    <input type="text" id="chart-data" placeholder="Es. 12, 19, 3, 17">
+                </div>
+            </div>
+
+            <button id="publish-btn" class="btn-main">Pubblica Post con Grafico</button>
             <p id="publish-status" class="status-msg"></p>
         </div>
 
@@ -275,7 +293,6 @@
         const postsFeed = document.getElementById('posts-feed');
         const createPostBox = document.getElementById('create-post-box');
 
-        // Controllo autenticazione per mostrare il box di creazione post
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user) {
@@ -286,7 +303,6 @@
             loadPosts();
         });
 
-        // Caricamento sicuro dei post da Firestore
         async function loadPosts() {
             try {
                 const querySnapshot = await getDocs(collection(db, "posts"));
@@ -309,10 +325,8 @@
             }
         }
 
-        // Renderizzazione protetta della UI
         window.renderPosts = function() {
             const filtered = allPosts.filter(post => {
-                const title = post.title ? String(post.title).toLowerCase() : "";
                 const tag = post.tag || "Informatica";
                 const matchesTag = activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
                 return matchesTag;
@@ -337,7 +351,19 @@
                         <p class="post-desc">${escapeHtml(post.desc)}</p>
                 `;
 
-                if (post.chartData && post.chartData.type) {
+                // Rendering se è una tabella
+                if (post.chartData && post.chartData.type === 'table') {
+                    html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 14px; font-size:0.9rem;">
+                        <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:6px;">Elemento</th><th style="padding:6px;">Valore</th></tr>`;
+                    if (post.chartData.labels && post.chartData.datasets) {
+                        post.chartData.labels.forEach((lbl, idx) => {
+                            html += `<tr style="border-bottom: 1px solid #21262d;"><td style="padding:6px;">${escapeHtml(lbl)}</td><td style="padding:6px;">${post.chartData.datasets[0].data[idx]}</td></tr>`;
+                        });
+                    }
+                    html += `</table>`;
+                } 
+                // Rendering se è un grafico Canvas (bar o line)
+                else if (post.chartData && post.chartData.type) {
                     html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
                 }
 
@@ -360,9 +386,9 @@
 
             postsFeed.innerHTML = html;
 
-            // Inizializza i grafici Chart.js in modo sicuro
+            // Inizializzazione Chart.js per i grafici
             filtered.forEach(post => {
-                if (post.chartData && post.chartData.type) {
+                if (post.chartData && post.chartData.type && post.chartData.type !== 'table') {
                     const ctx = document.getElementById(`chart-${post.id}`);
                     if (ctx) {
                         try {
@@ -383,7 +409,6 @@
             });
         }
 
-        // Funzione per gestire e aggiornare i Like su Firebase
         window.toggleLike = async function(postId) {
             if (!currentUser) {
                 alert("Devi effettuare l'accesso per mettere Like.");
@@ -394,30 +419,23 @@
             const post = allPosts.find(p => p.id === postId);
             if (!post) return;
 
-            if (!Array.isArray(post.likes)) {
-                post.likes = [];
-            }
-
+            if (!Array.isArray(post.likes)) post.likes = [];
             const isLiked = post.likes.includes(currentUser.uid);
 
             try {
                 if (isLiked) {
-                    // Rimuove il like
                     await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
                     post.likes = post.likes.filter(id => id !== currentUser.uid);
                 } else {
-                    // Aggiunge il like
                     await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
                     post.likes.push(currentUser.uid);
                 }
                 renderPosts();
             } catch (err) {
-                console.error("Errore aggiornamento like:", err);
-                alert("Errore durante l'aggiornamento del like.");
+                console.error("Errore like:", err);
             }
         };
 
-        // Funzione per eliminare un post
         window.deletePost = async function(postId) {
             if (!currentUser) return;
             if (!confirm("Sei sicuro di voler eliminare questo post?")) return;
@@ -431,17 +449,38 @@
             }
         };
 
-        // Pubblicazione Nuovo Post
+        // Pubblicazione Post con ChartData
         document.getElementById('publish-btn').addEventListener('click', async () => {
             const titleVal = document.getElementById('post-title').value.trim();
             const tagVal = document.getElementById('post-tag').value;
             const descVal = document.getElementById('post-desc').value.trim();
+            const chartTypeVal = document.getElementById('chart-type').value;
+            const rawLabels = document.getElementById('chart-labels').value.trim();
+            const rawData = document.getElementById('chart-data').value.trim();
             const statusEl = document.getElementById('publish-status');
 
             if (!titleVal) {
                 statusEl.textContent = "Inserisci un titolo valido.";
                 statusEl.className = "status-msg error";
                 return;
+            }
+
+            let chartDataObj = null;
+            if (chartTypeVal !== 'none') {
+                const labelsArr = rawLabels ? rawLabels.split(',').map(s => s.trim()) : ["Voce 1", "Voce 2"];
+                const dataArr = rawData ? rawData.split(',').map(s => Number(s.trim())) : [10, 20];
+
+                chartDataObj = {
+                    type: chartTypeVal,
+                    labels: labelsArr,
+                    datasets: [{
+                        label: titleVal,
+                        data: dataArr,
+                        backgroundColor: ['#238636', '#58a6ff', '#d29922', '#f85149', '#a371f7'],
+                        borderColor: '#30363d',
+                        borderWidth: 1
+                    }]
+                };
             }
 
             try {
@@ -452,13 +491,18 @@
                     title: titleVal,
                     tag: tagVal,
                     desc: descVal,
+                    chartData: chartDataObj,
                     likes: [],
                     createdAt: serverTimestamp()
                 });
 
                 document.getElementById('post-title').value = '';
                 document.getElementById('post-desc').value = '';
-                statusEl.textContent = "Post pubblicato con successo!";
+                document.getElementById('chart-labels').value = '';
+                document.getElementById('chart-data').value = '';
+                document.getElementById('chart-type').value = 'none';
+
+                statusEl.textContent = "Post e grafico pubblicati con successo!";
                 statusEl.className = "status-msg success";
 
                 loadPosts();
@@ -468,7 +512,6 @@
             }
         });
 
-        // Gestione filtri tag
         document.querySelectorAll('.tag-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
