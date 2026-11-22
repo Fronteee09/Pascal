@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal - Mappe</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+        }
+
+        h1 { font-size: 1.8rem; color: #ffffff; }
+
+        .back-link {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Contenitore Mappa */
+        #map {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            margin-bottom: 24px;
+            background-color: #161b22;
+        }
+
+        /* Pannello Admin (Riservato UID) */
+        #admin-panel {
+            background-color: #161b22;
+            border: 1px solid #1f6feb;
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+            margin-bottom: 24px;
+        }
+
+        #admin-panel h3 { margin-bottom: 14px; color: #58a6ff; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        @media(max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: #58a6ff; }
+
+        .btn {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #2ea043; }
+
+        .info-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.95rem;
+            color: #8b949e;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pascal Mappe Geografiche</h1>
+            <a href="index.html" class="back-link">← Torna alla Home</a>
+        </header>
+
+        <!-- Pannello di Gestione Mappa (Visibile solo all'UID autorizzato) -->
+        <div id="admin-panel">
+            <h3>Gestione Dati Nazionali (Admin)</h3>
+            <div class="form-grid">
+                <input type="text" id="country-name" placeholder="Nome Nazione (es. Italy, France)">
+                <input type="number" id="country-percentage" placeholder="Percentuale %" min="0" max="100">
+                <input type="color" id="country-color" value="#58a6ff" style="height: 42px; padding: 4px;">
+                <button class="btn" id="save-country-btn">Salva Dati</button>
+            </div>
+            <p style="font-size: 0.85rem; color: #8b949e;">Inserisci il nome in inglese della nazione (es. Italy, United States, Germany) così come riconosciuto dal sistema cartografico.</p>
+        </div>
+
+        <!-- Mappa Google -->
+        <div id="map"></div>
+
+        <div class="info-box">
+            <p id="map-status">Caricamento mappa in corso...</p>
+        </div>
+    </div>
+
+    <!-- Google Maps API (Sostituisci LA_TUA_API_KEY con una chiave Google Maps valida) -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E&callback=initMap"></script>
+
+    <!-- Script Firebase e Logica Mappa -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
+            authDomain: "pascal-b0d51.firebaseapp.com",
+            projectId: "pascal-b0d51",
+            storageBucket: "pascal-b0d51.firebasestorage.app",
+            messagingSenderId: "216010606072",
+            appId: "1:216010606072:web:faeecf8f2f806ce9c3820d",
+            measurementId: "G-SCN8C392NJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const AUTHORIZED_UID = "RDazAVYByPNOQWKLNBSeLNittRn1";
+        let map;
+        let countryData = {}; // Memorizza i dati caricati da Firestore { "Italy": { percentage: 45, color: "#ff0000" } }
+
+        // Inizializzazione Google Maps globale
+        window.initMap = async function() {
+            // Stile scuro personalizzato per integrarsi con il tema Pascal
+            const darkMapStyle = [
+                { elementType: "geometry", stylers: [{ color: "#1d2128" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#1a1919" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#8b949e" }] },
+                {
+                    featureType: "administrative.country",
+                    elementType: "geometry.stroke",
+                    stylers: [{ color: "#30363d" }, { strokeWeight: 1.5 }]
+                },
+                {
+                    featureType: "water",
+                    elementType: "geometry",
+                    stylers: [{ color: "#0d1117" }]
+                }
+            ];
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 2,
+                center: { lat: 20, lng: 0 },
+                styles: darkMapStyle,
+                disableDefaultUI: false,
+                mapTypeControl: false
+            });
+
+            document.getElementById('map-status').textContent = "Mappa caricata con successo. Sincronizzazione dati...";
+            await loadCountryDataFromFirestore();
+        }
+
+        // Carica i dati delle nazioni da Firestore
+        async function loadCountryDataFromFirestore() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "map_countries"));
+                countryData = {};
+                querySnapshot.forEach((docSnap) => {
+                    countryData[docSnap.id] = docSnap.data();
+                });
+
+                applyMapStyling();
+                document.getElementById('map-status').textContent = "Mappa aggiornata con i dati della community.";
+            } catch (err) {
+                document.getElementById('map-status').textContent = "Errore nel caricamento dei dati della mappa.";
+            }
+        }
+
+        // Applica i colori personalizzati e le percentuali alla mappa
+        function applyMapStyling() {
+            map.data.setStyle((feature) => {
+                // Google Maps usa proprietà standard per identificare le nazioni (es. name o ISO)
+                let name = feature.getProperty('name') || feature.getProperty('NAME') || "";
+                let data = countryData[name];
+
+                if (data) {
+                    return {
+                        fillColor: data.color,
+                        fillOpacity: 0.6,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 1
+                    };
+                } else {
+                    // Stile di default per nazioni non modificate
+                    return {
+                        fillColor: '#21262d',
+                        fillOpacity: 0.3,
+                        strokeColor: '#30363d',
+                        strokeWeight: 0.5
+                    };
+                }
+            });
+
+            // Gestione click sulle nazioni per vedere le informazioni
+            map.data.addListener('click', (event) => {
+                let name = event.feature.getProperty('name') || event.feature.getProperty('NAME') || "Nazione sconosciuta";
+                let data = countryData[name];
+                if (data) {
+                    alert(`${name}: ${data.percentage}% (Colore: ${data.color})`);
+                } else {
+                    alert(`${name}: Nessun dato registrato.`);
+                }
+            });
+        }
+
+        // Controllo UID per mostrare il pannello admin
+        onAuthStateChanged(auth, (user) => {
+            const adminPanel = document.getElementById('admin-panel');
+            if (user && user.uid === AUTHORIZED_UID) {
+                adminPanel.style.display = 'block';
+            } else {
+                adminPanel.style.display = 'none';
+            }
+        });
+
+        // Salvataggio dati nazione (Admin)
+        document.getElementById('save-country-btn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('country-name').value.trim();
+            const percentage = parseFloat(document.getElementById('country-percentage').value) || 0;
+            const color = document.getElementById('country-color').value;
+
+            if (!nameInput) return alert("Inserisci il nome della nazione.");
+
+            try {
+                // Usiamo il nome della nazione come ID del documento su Firestore
+                await setDoc(doc(db, "map_countries", nameInput), {
+                    name: nameInput,
+                    percentage: percentage,
+                    color: color
+                });
+
+                alert(`Dati salvati per ${nameInput}!`);
+                document.getElementById('country-name').value = '';
+                document.getElementById('country-percentage').value = '';
+                await loadCountryDataFromFirestore();
+            } catch (err) {
+                alert("Errore durante il salvataggio: " + err.message);
+            }
+        });
+    </script>
+</body>
+</html>
