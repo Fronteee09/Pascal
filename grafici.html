@@ -144,8 +144,10 @@
 
         .chart-wrapper {
             position: relative;
-            max-height: 250px;
+            max-height: 260px;
             margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
         }
 
         .post-footer {
@@ -202,7 +204,7 @@
             <h3>Nuovo Post / Grafico</h3>
             <div class="input-group">
                 <label>Titolo del Post</label>
-                <input type="text" id="post-title" placeholder="Es. Statistiche Server 2026">
+                <input type="text" id="post-title" placeholder="Es. Distribuzione Risorse 2026">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -227,16 +229,17 @@
                         <option value="none">Nessun Grafico (Solo Testo)</option>
                         <option value="bar">Grafico a Barre (Bar)</option>
                         <option value="line">Grafico a Linee (Line)</option>
+                        <option value="pie">Grafico a Torta (Pie)</option>
                         <option value="table">Tabella Dati</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>Etichette (separate da virgola)</label>
-                    <input type="text" id="chart-labels" placeholder="Es. Gennaio, Febbraio, Marzo, Aprile">
+                    <input type="text" id="chart-labels" placeholder="Es. Desktop, Mobile, Tablet">
                 </div>
                 <div class="input-group">
                     <label>Valori numerici (separati da virgola)</label>
-                    <input type="text" id="chart-data" placeholder="Es. 12, 19, 3, 17">
+                    <input type="text" id="chart-data" placeholder="Es. 55, 35, 10">
                 </div>
             </div>
 
@@ -476,7 +479,7 @@
                     datasets: [{
                         label: titleVal,
                         data: dataArr,
-                        backgroundColor: ['#238636', '#58a6ff', '#d29922', '#f85149', '#a371f7'],
+                        backgroundColor: ['#238636', '#58a6ff', '#d29922', '#f85149', '#a371f7', '#3fb950', '#8957e5'],
                         borderColor: '#30363d',
                         borderWidth: 1
                     }]
