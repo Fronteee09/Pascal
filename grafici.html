@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pascal - Grafici</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <!-- Chart.js per disegnare i grafici -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -25,10 +24,7 @@
             align-items: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
+        .container { width: 100%; max-width: 800px; }
 
         header {
             display: flex;
@@ -41,14 +37,9 @@
 
         h1 { font-size: 1.8rem; color: #ffffff; }
 
-        .back-link {
-            color: #58a6ff;
-            text-decoration: none;
-            font-size: 0.95rem;
-        }
+        .back-link { color: #58a6ff; text-decoration: none; font-size: 0.95rem; }
         .back-link:hover { text-decoration: underline; }
 
-        /* Filtri e Ricerca */
         .filter-box {
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -72,11 +63,7 @@
         }
         input:focus, select:focus, textarea:focus { border-color: #58a6ff; }
 
-        .tags-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .tags-container { display: flex; gap: 8px; flex-wrap: wrap; }
 
         .tag-btn {
             background-color: #21262d;
@@ -89,20 +76,15 @@
             transition: all 0.2s;
         }
 
-        .tag-btn.active, .tag-btn:hover {
-            background-color: #58a6ff;
-            color: #ffffff;
-            border-color: #58a6ff;
-        }
+        .tag-btn.active, .tag-btn:hover { background-color: #58a6ff; color: #ffffff; border-color: #58a6ff; }
 
-        /* Pannello Creazione Post (Riservato UID) */
         #creator-panel {
             background-color: #161b22;
             border: 1px solid #1f6feb;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 24px;
-            display: none; /* Nascosto di default, appare se l'UID coincide */
+            display: none;
         }
 
         #creator-panel h3 { margin-bottom: 14px; color: #58a6ff; }
@@ -123,7 +105,6 @@
         }
         .btn:hover { background-color: #2ea043; }
 
-        /* Lista Post */
         .post-card {
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -133,13 +114,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .post-title { font-size: 1.25rem; font-weight: 600; color: #ffffff; }
         
         .post-tag {
@@ -152,20 +127,8 @@
         }
 
         .post-desc { color: #8b949e; font-size: 0.95rem; margin-bottom: 16px; }
-
-        .chart-wrapper {
-            position: relative;
-            max-width: 400px;
-            margin: 0 auto 16px auto;
-        }
-
-        .post-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-top: 1px solid #21262d;
-            padding-top: 12px;
-        }
+        .chart-wrapper { position: relative; max-width: 400px; margin: 0 auto 16px auto; }
+        .post-footer { display: flex; justify-content: flex-end; align-items: center; border-top: 1px solid #21262d; padding-top: 12px; }
 
         .like-btn {
             background: #21262d;
@@ -183,12 +146,7 @@
         .like-btn:hover { background-color: #30363d; color: #f85149; }
         .like-btn.liked { color: #f85149; border-color: #f85149; }
 
-        .data-inputs-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+        .data-inputs-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -199,7 +157,6 @@
             <a href="index.html" class="back-link">← Torna alla Home</a>
         </header>
 
-        <!-- Barra di Ricerca e Filtri -->
         <div class="filter-box">
             <input type="text" id="search-input" placeholder="Cerca tra i titoli dei post...">
             <div class="tags-container" id="tag-filters">
@@ -213,7 +170,6 @@
             </div>
         </div>
 
-        <!-- Pannello di Creazione Post (Visibile solo all'UID autorizzato) -->
         <div id="creator-panel">
             <h3>Crea Nuovo Post con Grafico</h3>
             <div class="form-group">
@@ -248,26 +204,21 @@
                 <label>Numero di elementi</label>
                 <input type="number" id="num-items" min="1" max="10" value="3">
             </div>
-            <div id="dynamic-items-container" class="form-group">
-                <!-- Generato via JS -->
-            </div>
+            <div id="dynamic-items-container" class="form-group"></div>
             <button class="btn" id="publish-btn">Pubblica Post</button>
         </div>
 
-        <!-- Feed dei Post -->
         <div id="posts-feed">
             <p style="text-align:center; color:#8b949e;">Caricamento post...</p>
         </div>
     </div>
 
-    <!-- Script Firebase e Logica -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { 
             getFirestore, 
             collection, 
-            addFirestore, /* map to addDoc */
             getDocs, 
             doc, 
             updateDoc, 
@@ -293,23 +244,23 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const AUTHORIZED_UID = "RDazAVYByPNOQWKLNBSeLNittRn1";
+        // MODIFICA QUI: Inserisci il nickname esatto del tuo account admin
+        const AUTHORIZED_NICKNAME = "pascal"; 
+
         let currentUser = null;
         let allPosts = [];
         let activeTagFilter = "tutti";
         let searchQuery = "";
 
-        // Riferimenti UI
         const creatorPanel = document.getElementById('creator-panel');
         const numItemsInput = document.getElementById('num-items');
         const dynamicItemsContainer = document.getElementById('dynamic-items-container');
         const postsFeed = document.getElementById('posts-feed');
         const searchInput = document.getElementById('search-input');
 
-        // Controllo Autenticazione & Permessi UID
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (user && user.uid === AUTHORIZED_UID) {
+            if (user && user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
                 creatorPanel.style.display = 'block';
             } else {
                 creatorPanel.style.display = 'none';
@@ -317,14 +268,13 @@
             loadPosts();
         });
 
-        // Generatore campi dinamici per elementi grafico
         function renderItemInputs() {
             const count = parseInt(numItemsInput.value) || 1;
-            let html = '<label>Inserisci Nome, Valore/Percentuale e Colore (es. #58a6ff)</label>';
+            let html = '<label>Inserisci Nome, Valore e Colore</label>';
             for (let i = 0; i < count; i++) {
                 html += `
                     <div class="data-inputs-grid">
-                        <input type="text" placeholder="Nome elemento ${i+1}" class="item-name" value="Elemento ${i+1}">
+                        <input type="text" placeholder="Nome ${i+1}" class="item-name" value="Elemento ${i+1}">
                         <input type="number" placeholder="Valore" class="item-value" value="10">
                         <input type="color" class="item-color" value="${['#58a6ff', '#238636', '#f85149', '#d29922', '#a371f7'][i % 5]}">
                     </div>
@@ -336,9 +286,8 @@
         numItemsInput.addEventListener('input', renderItemInputs);
         renderItemInputs();
 
-        // Pubblica Post
         document.getElementById('publish-btn').addEventListener('click', async () => {
-            if (!currentUser || currentUser.uid !== AUTHORIZED_UID) return alert("Non autorizzato.");
+            if (!currentUser || currentUser.email !== `${AUTHORIZED_NICKNAME}@pascal.local`) return alert("Non autorizzato.");
 
             const title = document.getElementById('post-title').value.trim();
             const desc = document.getElementById('post-desc').value.trim();
@@ -375,10 +324,7 @@
 
             try {
                 await addDoc(collection(db, "posts"), {
-                    title,
-                    desc,
-                    tag,
-                    chartData,
+                    title, desc, tag, chartData,
                     likes: [],
                     createdAt: serverTimestamp()
                 });
@@ -391,7 +337,6 @@
             }
         });
 
-        // Carica Post da Firestore
         async function loadPosts() {
             try {
                 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -406,7 +351,6 @@
             }
         }
 
-        // Render dei Post con Filtri e Ricerca
         window.renderPosts = function() {
             const filtered = allPosts.filter(post => {
                 const matchesTag = activeTagFilter === 'tutti' || post.tag === activeTagFilter;
@@ -434,7 +378,6 @@
                 `;
 
                 if (post.chartData.type === 'table') {
-                    // Render Tabella
                     html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
                         <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:8px;">Elemento</th><th style="padding:8px;">Valore</th></tr>`;
                     post.chartData.labels.forEach((lbl, idx) => {
@@ -442,7 +385,6 @@
                     });
                     html += `</table>`;
                 } else {
-                    // Render Grafico Chart.js
                     html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
                 }
 
@@ -458,7 +400,6 @@
 
             postsFeed.innerHTML = html;
 
-            // Inizializza i grafici Chart.js
             filtered.forEach(post => {
                 if (post.chartData.type !== 'table') {
                     const ctx = document.getElementById(`chart-${post.id}`);
@@ -477,7 +418,6 @@
             });
         }
 
-        // Gestione Like (1 like a persona)
         window.toggleLike = async function(postId) {
             if (!currentUser) return alert("Devi effettuare l'accesso per mettere un like!");
 
@@ -502,7 +442,6 @@
             }
         };
 
-        // Filtri Tag
         document.querySelectorAll('.tag-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
@@ -512,7 +451,6 @@
             });
         });
 
-        // Ricerca Titolo
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value;
             renderPosts();
