@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pascal - Grafici e Community</title>
+    <title>Pascal - Grafici e Sondaggi</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
@@ -75,7 +75,7 @@
             border-color: #2ea043;
         }
 
-        /* Form Creazione Post & Grafici */
+        /* Form Creazione Post & Sondaggi */
         #create-post-box {
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -101,7 +101,7 @@
         }
         input:focus, textarea:focus, select:focus { border-color: #58a6ff; }
 
-        /* Righe dinamiche per i dati personalizzati */
+        /* Righe dinamiche */
         .item-row {
             display: flex;
             gap: 8px;
@@ -145,7 +145,7 @@
         }
         button.btn-main:hover { background-color: #2ea043; }
 
-        /* Feed Post */
+        /* Feed Post & Sondaggi */
         .post-card {
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -175,11 +175,34 @@
 
         .chart-wrapper {
             position: relative;
-            max-height: 280px;
+            max-height: 260px;
             margin-bottom: 14px;
             display: flex;
             justify-content: center;
         }
+
+        /* Pulsanti di voto per i sondaggi */
+        .poll-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .poll-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+        .poll-btn:hover { background-color: #30363d; border-color: #58a6ff; }
+        .poll-voted { border-color: #238636; background-color: rgba(35, 134, 54, 0.1); }
 
         .post-footer {
             display: flex;
@@ -230,12 +253,12 @@
             </div>
         </header>
 
-        <!-- Form Pubblicazione con Generatore Dinamico Elementi e Colori -->
+        <!-- Form Pubblicazione -->
         <div id="create-post-box">
-            <h3>Nuovo Post / Grafico Personalizzato</h3>
+            <h3>Crea Post, Grafico o Sondaggio</h3>
             <div class="input-group">
-                <label>Titolo del Post</label>
-                <input type="text" id="post-title" placeholder="Es. Report Statistiche">
+                <label>Titolo / Domanda</label>
+                <input type="text" id="post-title" placeholder="Es. Qual è il tuo linguaggio preferito?">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -248,31 +271,27 @@
                 </select>
             </div>
             <div class="input-group">
-                <label>Descrizione</label>
+                <label>Descrizione / Dettagli</label>
                 <textarea id="post-desc" rows="2" placeholder="Scrivi una breve descrizione..."></textarea>
             </div>
 
             <div class="input-group">
-                <label>Tipo di Visualizzazione</label>
-                <select id="chart-type">
-                    <option value="none">Nessun Grafico (Solo Testo)</option>
-                    <option value="bar">Grafico a Barre (Bar)</option>
-                    <option value="line">Grafico a Linee / Cartesiano (Line)</option>
-                    <option value="pie">Grafico a Torta (Pie)</option>
-                    <option value="table">Tabella Dati</option>
+                <label>Tipo di Contenuto</label>
+                <select id="content-type" onchange="toggleFormMode()">
+                    <option value="chart">Grafico / Tabella Personalizzata</option>
+                    <option value="poll">Sondaggio Interattivo (con Grafico a Torta)</option>
+                    <option value="text">Solo Testo</option>
                 </select>
             </div>
 
-            <!-- Sezione Riquadri Dinamici per Elementi, Nomi, Valori e Colori -->
-            <div style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
-                <label style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi, Valori e Colori:</label>
-                <div id="items-container">
-                    <!-- Righe generate dinamicamente -->
-                </div>
-                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Elemento</button>
+            <!-- Sezione Riquadri Dinamici -->
+            <div id="builder-section" style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
+                <label id="builder-label" style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi e Colori:</label>
+                <div id="items-container"></div>
+                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Opzione</button>
             </div>
 
-            <button id="publish-btn" class="btn-main">Pubblica Post</button>
+            <button id="publish-btn" class="btn-main">Pubblica</button>
             <p id="publish-status" class="status-msg"></p>
         </div>
 
@@ -286,7 +305,7 @@
             <button class="tag-btn" data-tag="Sicurezza digitale">Sicurezza digitale</button>
         </div>
 
-        <!-- Feed dei Post -->
+        <!-- Feed -->
         <div id="posts-feed">
             <p style="text-align:center; color:#8b949e; padding: 20px;">Caricamento post in corso...</p>
         </div>
@@ -330,22 +349,41 @@
         const createPostBox = document.getElementById('create-post-box');
         const itemsContainer = document.getElementById('items-container');
 
-        window.addItemRow = function(name = '', value = '', color = '#58a6ff') {
+        window.toggleFormMode = function() {
+            const type = document.getElementById('content-type').value;
+            const builder = document.getElementById('builder-section');
+            if (type === 'text') {
+                builder.style.display = 'none';
+            } else {
+                builder.style.display = 'block';
+            }
+        }
+
+        window.addItemRow = function(name = '', value = '10', color = '#58a6ff') {
+            const type = document.getElementById('content-type').value;
             const row = document.createElement('div');
             row.className = 'item-row';
-            row.innerHTML = `
-                <input type="text" placeholder="Nome elemento" value="${name}" class="row-name">
-                <input type="number" placeholder="Valore" value="${value}" class="row-val">
-                <input type="color" value="${color}" class="row-color">
-                <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
-            `;
+            
+            if (type === 'poll') {
+                row.innerHTML = `
+                    <input type="text" placeholder="Nome Opzione" value="${name}" class="row-name">
+                    <input type="color" value="${color}" class="row-color">
+                    <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
+                `;
+            } else {
+                row.innerHTML = `
+                    <input type="text" placeholder="Nome elemento" value="${name}" class="row-name">
+                    <input type="number" placeholder="Valore" value="${value}" class="row-val">
+                    <input type="color" value="${color}" class="row-color">
+                    <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
+                `;
+            }
             itemsContainer.appendChild(row);
         }
 
-        // Righe di default iniziali
-        addItemRow('Gennaio', '10', '#238636');
-        addItemRow('Febbraio', '20', '#58a6ff');
-        addItemRow('Marzo', '15', '#d29922');
+        // Inizializza con 3 righe
+        addItemRow('Opzione A', '10', '#238636');
+        addItemRow('Opzione B', '20', '#58a6ff');
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -369,7 +407,8 @@
                         desc: data.desc || "",
                         tag: data.tag || "Notizie",
                         likes: Array.isArray(data.likes) ? data.likes : [],
-                        chartData: data.chartData || null
+                        chartData: data.chartData || null,
+                        pollData: data.pollData || null
                     });
                 });
                 renderPosts();
@@ -382,8 +421,7 @@
         window.renderPosts = function() {
             const filtered = allPosts.filter(post => {
                 const tag = post.tag || "Notizie";
-                const matchesTag = activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
-                return matchesTag;
+                return activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
             });
 
             if (filtered.length === 0) {
@@ -405,7 +443,27 @@
                         <p class="post-desc">${escapeHtml(post.desc)}</p>
                 `;
 
-                if (post.chartData && post.chartData.type === 'table') {
+                // Renderizza Sondaggio
+                if (post.pollData) {
+                    const totalVotes = post.pollData.options.reduce((acc, opt) => acc + (opt.votes ? opt.votes.length : 0), 0);
+                    
+                    html += `<div class="chart-wrapper"><canvas id="poll-chart-${post.id}"></canvas></div>`;
+                    html += `<div style="text-align:center; font-size:0.85rem; color:#8b949e; margin-bottom:10px;">Partecipanti totali: ${totalVotes}</div>`;
+                    
+                    html += `<div class="poll-options">`;
+                    post.pollData.options.forEach((opt, idx) => {
+                        const hasVotedThis = currentUser && opt.votes && opt.votes.includes(currentUser.uid);
+                        html += `
+                            <button class="poll-btn ${hasVotedThis ? 'poll-voted' : ''}" onclick="votePoll('${post.id}', ${idx})">
+                                <span>${escapeHtml(opt.name)}</span>
+                                <span style="font-weight:bold; color:#58a6ff;">${opt.votes ? opt.votes.length : 0} voti</span>
+                            </button>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+                // Renderizza Grafico Normale o Tabella
+                else if (post.chartData && post.chartData.type === 'table') {
                     html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 14px; font-size:0.9rem;">
                         <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:6px;">Elemento</th><th style="padding:6px;">Valore</th></tr>`;
                     if (post.chartData.labels && post.chartData.datasets) {
@@ -438,8 +496,39 @@
 
             postsFeed.innerHTML = html;
 
+            // Inizializza i grafici Chart.js (inclusi i grafici a torta dei sondaggi)
             filtered.forEach(post => {
-                if (post.chartData && post.chartData.type && post.chartData.type !== 'table') {
+                if (post.pollData) {
+                    const ctx = document.getElementById(`poll-chart-${post.id}`);
+                    if (ctx) {
+                        const labels = post.pollData.options.map(o => o.name);
+                        const data = post.pollData.options.map(o => o.votes ? o.votes.length : 0);
+                        const colors = post.pollData.options.map(o => o.color);
+
+                        try {
+                            new Chart(ctx, {
+                                type: 'pie',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        data: data,
+                                        backgroundColor: colors,
+                                        borderColor: '#30363d',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { labels: { color: '#e6edf3' } } }
+                                }
+                            });
+                        } catch (e) {
+                            console.error("Errore rendering sondaggio:", e);
+                        }
+                    }
+                } 
+                else if (post.chartData && post.chartData.type && post.chartData.type !== 'table') {
                     const ctx = document.getElementById(`chart-${post.id}`);
                     if (ctx) {
                         try {
@@ -464,6 +553,40 @@
             });
         }
 
+        // Funzione per votare nei sondaggi
+        window.votePoll = async function(postId, optionIndex) {
+            if (!currentUser) {
+                alert("Devi effettuare l'accesso per votare.");
+                return;
+            }
+
+            const postRef = doc(db, "posts", postId);
+            const post = allPosts.find(p => p.id === postId);
+            if (!post || !post.pollData) return;
+
+            let options = JSON.parse(JSON.stringify(post.pollData.options));
+
+            // Rimuovi il voto precedente dell'utente da qualsiasi opzione (voto singolo)
+            options.forEach(opt => {
+                if (opt.votes) {
+                    opt.votes = opt.votes.filter(uid => uid !== currentUser.uid);
+                }
+            });
+
+            // Aggiungi il voto alla nuova opzione selezionata
+            if (!options[optionIndex].votes) options[optionIndex].votes = [];
+            options[optionIndex].votes.push(currentUser.uid);
+
+            try {
+                await updateDoc(postRef, { "pollData.options": options });
+                post.pollData.options = options;
+                renderPosts();
+            } catch (err) {
+                console.error("Errore voto sondaggio:", err);
+                alert("Impossibile registrare il voto.");
+            }
+        };
+
         window.toggleLike = async function(postId) {
             if (!currentUser) {
                 alert("Devi effettuare l'accesso per mettere Like.");
@@ -474,10 +597,7 @@
             const post = allPosts.find(p => p.id === postId);
             if (!post) return;
 
-            if (!Array.isArray(post.likes)) {
-                post.likes = [];
-            }
-
+            if (!Array.isArray(post.likes)) post.likes = [];
             const isLiked = post.likes.includes(currentUser.uid);
 
             try {
@@ -491,7 +611,6 @@
                 renderPosts();
             } catch (err) {
                 console.error("Errore like:", err);
-                alert("Impossibile aggiornare il like.");
             }
         };
 
@@ -512,17 +631,36 @@
             const titleVal = document.getElementById('post-title').value.trim();
             const tagVal = document.getElementById('post-tag').value;
             const descVal = document.getElementById('post-desc').value.trim();
-            const chartTypeVal = document.getElementById('chart-type').value;
+            const contentType = document.getElementById('content-type').value;
             const statusEl = document.getElementById('publish-status');
 
             if (!titleVal) {
-                statusEl.textContent = "Inserisci un titolo valido.";
+                statusEl.textContent = "Inserisci un titolo o una domanda valida.";
                 statusEl.className = "status-msg error";
                 return;
             }
 
             let chartDataObj = null;
-            if (chartTypeVal !== 'none') {
+            let pollDataObj = null;
+
+            if (contentType === 'poll') {
+                const rows = document.querySelectorAll('.item-row');
+                const pollOptions = [];
+                rows.forEach(row => {
+                    const name = row.querySelector('.row-name').value.trim() || 'Opzione';
+                    const col = row.querySelector('.row-color').value;
+                    pollOptions.push({ name: name, color: col, votes: [] });
+                });
+
+                if (pollOptions.length < 2) {
+                    statusEl.textContent = "Un sondaggio deve avere almeno 2 opzioni.";
+                    statusEl.className = "status-msg error";
+                    return;
+                }
+
+                pollDataObj = { options: pollOptions };
+            } 
+            else if (contentType === 'chart' || contentType === 'table') {
                 const rows = document.querySelectorAll('.item-row');
                 const labels = [];
                 const data = [];
@@ -539,15 +677,15 @@
                 });
 
                 chartDataObj = {
-                    type: chartTypeVal,
+                    type: contentType,
                     labels: labels,
                     datasets: [{
                         label: titleVal,
                         data: data,
-                        backgroundColor: chartTypeVal === 'line' ? 'rgba(88, 166, 255, 0.2)' : colors,
-                        borderColor: chartTypeVal === 'line' ? (colors[0] || '#58a6ff') : '#30363d',
+                        backgroundColor: contentType === 'line' ? 'rgba(88, 166, 255, 0.2)' : colors,
+                        borderColor: contentType === 'line' ? (colors[0] || '#58a6ff') : '#30363d',
                         borderWidth: 2,
-                        fill: chartTypeVal === 'line' ? true : false,
+                        fill: contentType === 'line' ? true : false,
                         tension: 0.2
                     }]
                 };
@@ -562,13 +700,14 @@
                     tag: tagVal,
                     desc: descVal,
                     chartData: chartDataObj,
+                    pollData: pollDataObj,
                     likes: [],
                     createdAt: serverTimestamp()
                 });
 
                 document.getElementById('post-title').value = '';
                 document.getElementById('post-desc').value = '';
-                statusEl.textContent = "Post pubblicato con successo!";
+                statusEl.textContent = "Pubblicato con successo!";
                 statusEl.className = "status-msg success";
 
                 loadPosts();
