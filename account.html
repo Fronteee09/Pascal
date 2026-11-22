@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pascal - Account</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <style>
         * {
             margin: 0;
@@ -70,9 +71,7 @@
             transition: border-color 0.2s;
         }
 
-        input:focus {
-            border-color: #58a6ff;
-        }
+        input:focus { border-color: #58a6ff; }
 
         .btn-group {
             display: flex;
@@ -92,35 +91,14 @@
             border: 1px solid transparent;
         }
 
-        .btn-primary {
-            background-color: #238636;
-            color: #ffffff;
-        }
+        .btn-primary { background-color: #238636; color: #ffffff; }
+        .btn-primary:hover { background-color: #2ea043; }
 
-        .btn-primary:hover {
-            background-color: #2ea043;
-        }
+        .btn-secondary { background-color: #21262d; color: #58a6ff; border-color: #30363d; }
+        .btn-secondary:hover { background-color: #30363d; border-color: #58a6ff; }
 
-        .btn-secondary {
-            background-color: #21262d;
-            color: #58a6ff;
-            border-color: #30363d;
-        }
-
-        .btn-secondary:hover {
-            background-color: #30363d;
-            border-color: #58a6ff;
-        }
-
-        .btn-danger {
-            background-color: #da3633;
-            color: #ffffff;
-            margin-top: 16px;
-        }
-
-        .btn-danger:hover {
-            background-color: #f85149;
-        }
+        .btn-danger { background-color: #da3633; color: #ffffff; margin-top: 16px; }
+        .btn-danger:hover { background-color: #f85149; }
 
         .status-msg {
             margin-top: 16px;
@@ -138,10 +116,7 @@
             text-decoration: none;
             font-size: 0.9rem;
         }
-
-        .back-link:hover {
-            color: #58a6ff;
-        }
+        .back-link:hover { color: #58a6ff; }
 
         .hidden { display: none; }
     </style>
@@ -149,14 +124,13 @@
 <body>
 
     <div class="auth-box">
-        <!-- Schermata Accesso / Registrazione -->
         <div id="auth-form">
             <h1>Account Pascal</h1>
             <p class="subtitle">Accedi o crea un profilo con solo nickname e password.</p>
 
             <div class="input-group">
                 <label for="nickname">Nickname</label>
-                <input type="text" id="nickname" placeholder="es. marco99" autocomplete="off">
+                <input type="text" id="nickname" placeholder="es. pasquale" autocomplete="off">
             </div>
 
             <div class="input-group">
@@ -170,7 +144,6 @@
             </div>
         </div>
 
-        <!-- Schermata Utente Loggato -->
         <div id="user-panel" class="hidden" style="text-align: center;">
             <h1>Ciao, <span id="display-nick" style="color: #58a6ff;"></span>!</h1>
             <p class="subtitle" style="margin-top: 8px;">Sei connesso al tuo spazio Pascal.</p>
@@ -182,7 +155,6 @@
 
     <a href="index.html" class="back-link">← Torna alla Home</a>
 
-    <!-- Script Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { 
@@ -207,7 +179,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // Elementi DOM
         const authForm = document.getElementById('auth-form');
         const userPanel = document.getElementById('user-panel');
         const displayNick = document.getElementById('display-nick');
@@ -215,9 +186,7 @@
         const nickInput = document.getElementById('nickname');
         const passInput = document.getElementById('password');
 
-        // Converte il nickname in una finta email per Firebase
         function formatFakeEmail(nickname) {
-            // Rimuove spazi e caratteri speciali per evitare errori di formato email
             const cleanNick = nickname.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
             return `${cleanNick}@pascal.local`;
         }
@@ -227,23 +196,17 @@
             statusMsg.className = isError ? 'status-msg error' : 'status-msg success';
         }
 
-        // Registrazione
         document.getElementById('register-btn').addEventListener('click', async () => {
             const nick = nickInput.value.trim();
             const pass = passInput.value;
 
-            if (nick.length < 3) {
-                return showMessage("Il nickname deve avere almeno 3 caratteri.", true);
-            }
-            if (pass.length < 6) {
-                return showMessage("La password deve essere di almeno 6 caratteri.", true);
-            }
+            if (nick.length < 3) return showMessage("Il nickname deve avere almeno 3 caratteri.", true);
+            if (pass.length < 6) return showMessage("La password deve essere di almeno 6 caratteri.", true);
 
             const fakeEmail = formatFakeEmail(nick);
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, pass);
-                // Salviamo il nickname originale nel profilo utente
                 await updateProfile(userCredential.user, { displayName: nick });
                 displayNick.textContent = nick;
                 showMessage("Account creato con successo!");
@@ -256,14 +219,11 @@
             }
         });
 
-        // Login
         document.getElementById('login-btn').addEventListener('click', async () => {
             const nick = nickInput.value.trim();
             const pass = passInput.value;
 
-            if (!nick || !pass) {
-                return showMessage("Inserisci nickname e password.", true);
-            }
+            if (!nick || !pass) return showMessage("Inserisci nickname e password.", true);
 
             const fakeEmail = formatFakeEmail(nick);
 
@@ -275,7 +235,6 @@
             }
         });
 
-        // Logout
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await signOut(auth);
             nickInput.value = '';
@@ -283,7 +242,6 @@
             showMessage("Disconnesso.");
         });
 
-        // Controlla se l'utente è già loggato
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 authForm.classList.add('hidden');
@@ -295,6 +253,5 @@
             }
         });
     </script>
-
 </body>
 </html>
