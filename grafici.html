@@ -244,7 +244,7 @@
             <h3>Crea Post, Grafico o Sondaggio</h3>
             <div class="input-group">
                 <label>Titolo / Domanda</label>
-                <input type="text" id="post-title" placeholder="Es. Qual è il tuo linguaggio preferito?">
+                <input type="text" id="post-title" placeholder="Es. Qual è il tuo framework preferito?">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -264,7 +264,10 @@
             <div class="input-group">
                 <label>Tipo di Contenuto</label>
                 <select id="content-type" onchange="toggleFormMode()">
-                    <option value="chart">Grafico / Tabella Personalizzata</option>
+                    <option value="bar">Grafico a Barre</option>
+                    <option value="line">Grafico a Linee / Cartesiano</option>
+                    <option value="pie">Grafico a Torta</option>
+                    <option value="table">Tabella Dati</option>
                     <option value="poll">Sondaggio Interattivo (con Grafico a Torta)</option>
                     <option value="text">Solo Testo</option>
                 </select>
@@ -274,7 +277,7 @@
             <div id="builder-section" style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
                 <label id="builder-label" style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi e Colori:</label>
                 <div id="items-container"></div>
-                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Opzione</button>
+                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Elemento / Opzione</button>
             </div>
 
             <button id="publish-btn" class="btn-main">Pubblica</button>
@@ -365,8 +368,9 @@
             itemsContainer.appendChild(row);
         }
 
-        addItemRow('Opzione A', '10', '#238636');
-        addItemRow('Opzione B', '20', '#58a6ff');
+        // Righe iniziali di default
+        addItemRow('Elemento 1', '10', '#238636');
+        addItemRow('Elemento 2', '20', '#58a6ff');
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -596,7 +600,7 @@
 
                 pollDataObj = { options: pollOptions };
             } 
-            else if (contentType === 'chart' || contentType === 'table') {
+            else if (contentType !== 'text') {
                 const rows = document.querySelectorAll('.item-row');
                 const labels = [];
                 const data = [];
