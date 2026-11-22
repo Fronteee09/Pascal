@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pascal - Account & Notifiche</title>
+    <title>Pascal - Account e Notifiche</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
@@ -19,206 +19,140 @@
             background-color: #0d1117;
             color: #e6edf3;
             min-height: 100vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .auth-box {
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+        }
+
+        h1 { font-size: 1.8rem; color: #ffffff; }
+
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-left: 15px;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+
+        .card {
             background-color: #161b22;
             border: 1px solid #30363d;
-            border-radius: 16px;
-            padding: 36px 30px;
-            max-width: 460px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
 
-        h1 { font-size: 1.8rem; text-align: center; margin-bottom: 8px; color: #ffffff; }
-        .subtitle { text-align: center; color: #8b949e; font-size: 0.95rem; margin-bottom: 24px; }
+        .card h3 { margin-bottom: 12px; font-size: 1.1rem; color: #58a6ff; }
 
-        .input-group { margin-bottom: 16px; }
-        label { display: block; font-size: 0.9rem; margin-bottom: 6px; color: #c9d1d9; }
-
-        input, textarea {
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #c9d1d9; }
+        input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 10px;
             background-color: #0d1117;
             border: 1px solid #30363d;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
         }
-        input:focus, textarea:focus { border-color: #58a6ff; }
+        input:focus { border-color: #58a6ff; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1rem;
+        button.btn-main {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
+            width: 100%;
+            margin-top: 8px;
         }
+        button.btn-main:hover { background-color: #2ea043; }
 
-        .btn-primary { background-color: #238636; color: #ffffff; }
-        .btn-primary:hover { background-color: #2ea043; }
-        .btn-secondary { background-color: #21262d; color: #58a6ff; border-color: #30363d; }
-        .btn-secondary:hover { background-color: #30363d; border-color: #58a6ff; }
-        .btn-danger { background-color: #da3633; color: #ffffff; margin-top: 16px; }
-        .btn-danger:hover { background-color: #f85149; }
-
-        /* Notifiche & Bottoni Pannello */
-        .notif-btn-container { position: relative; margin-top: 12px; }
-        .badge-dot {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid #161b22;
-            display: none;
+        button.btn-danger {
+            background-color: #da3633;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
         }
-        .badge-yellow { background-color: #d29922; }
+        button.btn-danger:hover { background-color: #f85149; }
 
-        /* Box Notifiche a scomparsa */
-        #notif-box {
-            display: none;
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 14px;
-            margin-top: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-        .notif-item { padding: 6px 0; border-bottom: 1px solid #21262d; color: #8b949e; }
-
-        /* Pop-up Annunci Ufficiali */
-        #announcement-popup {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            justify-content: center; align-items: center;
-            z-index: 1000;
-        }
-        .popup-content {
-            background: #161b22;
-            border: 2px solid #58a6ff;
-            padding: 24px;
-            border-radius: 14px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .status-msg { margin-top: 16px; font-size: 0.9rem; text-align: center; min-height: 20px; }
+        .status-msg { text-align: center; font-size: 0.9rem; margin-top: 10px; }
         .error { color: #f85149; }
         .success { color: #3fb950; }
-
-        .back-link { margin-top: 20px; color: #8b949e; text-decoration: none; font-size: 0.9rem; display: block; text-align: center; }
-        .back-link:hover { color: #58a6ff; }
-        .hidden { display: none; }
+        
+        #user-info { display: none; }
+        #login-section { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="auth-box">
-        <!-- Form Login/Registrazione -->
-        <div id="auth-form">
-            <h1>Account Pascal</h1>
-            <p class="subtitle">Accedi o crea un profilo con nickname e password.</p>
+    <div class="container">
+        <header>
+            <h1>Pascal Account</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="grafici.html">Grafici</a>
+            </div>
+        </header>
 
+        <!-- Sezione Login -->
+        <div id="login-section" class="card">
+            <h3>Accedi</h3>
             <div class="input-group">
-                <label for="nickname">Nickname</label>
-                <input type="text" id="nickname" placeholder="es. Fronte" autocomplete="off">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="nome@esempio.com">
             </div>
-
             <div class="input-group">
-                <label for="password">Password (min. 6 caratteri)</label>
-                <input type="password" id="password" placeholder="••••••••">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••">
             </div>
-
-            <div class="btn-group">
-                <button id="login-btn" class="btn-primary">Accedi</button>
-                <button id="register-btn" class="btn-secondary">Crea nuovo account</button>
-            </div>
+            <button id="login-btn" class="btn-main">Accedi</button>
+            <p id="login-status" class="status-msg"></p>
         </div>
 
-        <!-- Pannello Utente Connesso -->
-        <div id="user-panel" class="hidden" style="text-align: center;">
-            <h1>Ciao, <span id="display-nick" style="color: #58a6ff;"></span>!</h1>
-            <p class="subtitle" style="margin-top: 4px;">Area personale Pascal</p>
-
-            <!-- Tasto Notifiche Post (Pallino Giallo) -->
-            <div class="notif-btn-container">
-                <button id="toggle-notif-btn" class="btn-secondary">
-                    Notifiche Nuovi Post <span id="dot-yellow" class="badge-dot badge-yellow"></span>
-                </button>
-                <div id="notif-box">Caricamento notifiche...</div>
+        <!-- Sezione Area Utente / Notifiche -->
+        <div id="user-info" class="card">
+            <h3>Area Personale</h3>
+            <p id="user-email-display" style="margin-bottom: 16px; color: #8b949e; font-size: 0.95rem;"></p>
+            
+            <div style="border-top: 1px solid #30363d; padding-top: 16px; margin-top: 16px;">
+                <h3 style="font-size: 1rem; color: #ffffff; margin-bottom: 8px;">Notifiche Push</h3>
+                <p style="font-size: 0.85rem; color: #8b949e; margin-bottom: 12px;">Attiva le notifiche per ricevere aggiornamenti in tempo reale sul tuo dispositivo.</p>
+                <button id="notif-btn" class="btn-main">🔔 Attiva Notifiche sul Telefono</button>
+                <p id="notif-status" class="status-msg"></p>
             </div>
 
-            <!-- Tasto per attivare le Notifiche Push sul telefono -->
-            <div style="margin-top: 12px;">
-                <button id="enable-push-btn" class="btn-secondary" style="border-color: #238636; color: #3fb950;">
-                    🔔 Attiva Notifiche sul Telefono
-                </button>
+            <div style="border-top: 1px solid #30363d; padding-top: 16px; margin-top: 16px;">
+                <button id="logout-btn" class="btn-danger">Disconnetti Account</button>
             </div>
-
-            <!-- Pannello Admin per inviare Annunci Ufficiali (Visibile solo a Fronte) -->
-            <div id="admin-broadcast-panel" class="hidden" style="margin-top: 20px; border-top: 1px solid #30363d; padding-top: 16px; text-align: left;">
-                <label style="color: #58a6ff; font-weight: 600;">Invia Annuncio Ufficiale (Mod)</label>
-                <textarea id="broadcast-text" rows="2" placeholder="Scrivi un annuncio per tutti gli utenti..." style="margin-top: 6px; margin-bottom: 8px;"></textarea>
-                <button id="send-broadcast-btn" class="btn-primary" style="padding: 8px;">Invia Annuncio</button>
-            </div>
-
-            <button id="logout-btn" class="btn-danger">Esci dall'account</button>
-        </div>
-
-        <p id="status" class="status-msg"></p>
-    </div>
-
-    <a href="index.html" class="back-link">← Torna alla Home</a>
-
-    <!-- Pop-up Annuncio Ufficiale (Per gli utenti) -->
-    <div id="announcement-popup">
-        <div class="popup-content">
-            <h3 style="color: #58a6ff; margin-bottom: 10px;">📢 Annuncio Ufficiale</h3>
-            <p id="popup-message" style="margin-bottom: 16px; color: #e6edf3;"></p>
-            <button id="close-popup-btn" class="btn-primary">Ho capito</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            signOut, 
-            onAuthStateChanged,
-            updateProfile 
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            getDocs, 
-            setDoc, 
-            doc, 
-            getDoc,
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
         const firebaseConfig = {
@@ -233,155 +167,91 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
         const messaging = getMessaging(app);
 
-        const AUTHORIZED_NICKNAME = "fronte";
-        const VAPID_KEY = "BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzahK6VKGw";
+        const loginSection = document.getElementById('login-section');
+        const userInfo = document.getElementById('user-info');
+        const userEmailDisplay = document.getElementById('user-email-display');
 
-        const authForm = document.getElementById('auth-form');
-        const userPanel = document.getElementById('user-panel');
-        const displayNick = document.getElementById('display-nick');
-        const statusMsg = document.getElementById('status');
-        const nickInput = document.getElementById('nickname');
-        const passInput = document.getElementById('password');
-        const dotYellow = document.getElementById('dot-yellow');
-        const notifBox = document.getElementById('notif-box');
-        const adminBroadcastPanel = document.getElementById('admin-broadcast-panel');
-        const announcementPopup = document.getElementById('announcement-popup');
-        const popupMessage = document.getElementById('popup-message');
-
-        function formatFakeEmail(nickname) {
-            return `${nickname.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '')}@pascal.local`;
-        }
-
-        function showMessage(text, isError = false) {
-            statusMsg.textContent = text;
-            statusMsg.className = isError ? 'status-msg error' : 'status-msg success';
-        }
-
-        document.getElementById('register-btn').addEventListener('click', async () => {
-            const nick = nickInput.value.trim();
-            const pass = passInput.value;
-            if (nick.length < 3 || pass.length < 6) return showMessage("Nickname (min 3) o password (min 6) non validi.", true);
-
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, formatFakeEmail(nick), pass);
-                await updateProfile(cred.user, { displayName: nick });
-                showMessage("Account creato con successo!");
-            } catch (err) {
-                showMessage("Errore: " + err.message, true);
-            }
-        });
-
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const nick = nickInput.value.trim();
-            const pass = passInput.value;
-            if (!nick || !pass) return showMessage("Inserisci dati validi.", true);
-
-            try {
-                await signInWithEmailAndPassword(auth, formatFakeEmail(nick), pass);
-                showMessage("");
-            } catch (err) {
-                showMessage("Nickname o password errati.", true);
-            }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            await signOut(auth);
-            nickInput.value = ''; passInput.value = '';
-        });
-
-        onAuthStateChanged(auth, async (user) => {
+        // Gestione Auth State
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                authForm.classList.add('hidden');
-                userPanel.classList.remove('hidden');
-                const nick = user.displayName || user.email.split('@')[0];
-                displayNick.textContent = nick;
-
-                if (user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
-                    adminBroadcastPanel.classList.remove('hidden');
-                }
-
-                await checkNotificationsAndAnnouncements();
+                loginSection.style.display = 'none';
+                userInfo.style.display = 'block';
+                userEmailDisplay.textContent = `Accesso effettuato come: ${user.email}`;
             } else {
-                authForm.classList.remove('hidden');
-                userPanel.classList.add('hidden');
+                loginSection.style.display = 'block';
+                userInfo.style.display = 'none';
             }
         });
 
-        async function checkNotificationsAndAnnouncements() {
-            try {
-                const notifSnap = await getDocs(collection(db, "posts"));
-                let html = "";
-                if (!notifSnap.empty) {
-                    dotYellow.style.display = 'block';
-                    notifSnap.forEach(docSnap => {
-                        const post = docSnap.data();
-                        html += `<div class="notif-item"><b>Nuovo post:</b> ${post.title}</div>`;
-                    });
-                } else {
-                    html = `<div class="notif-item">Nessuna notifica.</div>`;
-                }
-                notifBox.innerHTML = html;
+        // Login
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const statusEl = document.getElementById('login-status');
 
-                const announceDoc = await getDoc(doc(db, "settings", "announcement"));
-                if (announceDoc.exists()) {
-                    const data = announceDoc.data();
-                    popupMessage.textContent = data.text;
-                    announcementPopup.style.display = 'flex';
-                }
+            if (!email || !password) {
+                statusEl.textContent = "Inserisci email e password.";
+                statusEl.className = "status-msg error";
+                return;
+            }
+
+            try {
+                statusEl.textContent = "Accesso in corso...";
+                statusEl.className = "status-msg";
+                await signInWithEmailAndPassword(auth, email, password);
+                statusEl.textContent = "";
             } catch (err) {
-                console.error(err);
+                statusEl.textContent = "Errore: " + err.message;
+                statusEl.className = "status-msg error";
             }
-        }
-
-        document.getElementById('toggle-notif-btn').addEventListener('click', () => {
-            notifBox.style.display = notifBox.style.display === 'block' ? 'none' : 'block';
-            dotYellow.style.display = 'none';
         });
 
-        // Pulsante per attivare le notifiche push sul telefono
-        document.getElementById('enable-push-btn').addEventListener('click', async () => {
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
             try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-                    if (token) {
-                        await setDoc(doc(db, "device_tokens", token), {
-                            token: token,
-                            updatedAt: serverTimestamp()
-                        });
-                        alert("Notifiche sul telefono attivate con successo!");
-                    } else {
-                        alert("Impossibile ottenere il token del dispositivo.");
-                    }
-                } else {
-                    alert("Permesso di notifica negato dal browser.");
-                }
+                await signOut(auth);
             } catch (err) {
-                alert("Errore nell'attivazione delle notifiche: " + err.message);
+                console.error("Errore logout:", err);
             }
         });
 
-        document.getElementById('send-broadcast-btn').addEventListener('click', async () => {
-            const text = document.getElementById('broadcast-text').value.trim();
-            if (!text) return alert("Scrivi un testo per l'annuncio.");
+        // Attivazione Notifiche Push
+        document.getElementById('notif-btn').addEventListener('click', async () => {
+            const statusEl = document.getElementById('notif-status');
+            
+            if (!('serviceWorker' in navigator)) {
+                statusEl.textContent = "Il tuo browser non supporta i Service Worker.";
+                statusEl.className = "status-msg error";
+                return;
+            }
 
             try {
-                await setDoc(doc(db, "settings", "announcement"), {
-                    text: text,
-                    createdAt: serverTimestamp()
+                statusEl.textContent = "Richiesta permessi in corso...";
+                statusEl.className = "status-msg";
+
+                // Registrazione esplicita del Service Worker alla radice
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                
+                const currentToken = await getToken(messaging, {
+                    vapidKey: 'BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzahK6VKGw',
+                    serviceWorkerRegistration: registration
                 });
-                alert("Annuncio ufficiale inviato a tutti gli utenti!");
-                document.getElementById('broadcast-text').value = '';
-            } catch (err) {
-                alert("Errore: " + err.message);
-            }
-        });
 
-        document.getElementById('close-popup-btn').addEventListener('click', () => {
-            announcementPopup.style.display = 'none';
+                if (currentToken) {
+                    statusEl.textContent = "Notifiche attivate con successo!";
+                    statusEl.className = "status-msg success";
+                    console.log("Token FCM ottenuto:", currentToken);
+                } else {
+                    statusEl.textContent = "Impossibile ottenere il token di notifica.";
+                    statusEl.className = "status-msg error";
+                }
+            } catch (err) {
+                console.error("Errore notifiche:", err);
+                statusEl.textContent = "Errore: " + err.message;
+                statusEl.className = "status-msg error";
+            }
         });
     </script>
 </body>
