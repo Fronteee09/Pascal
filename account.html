@@ -231,8 +231,11 @@
                 statusEl.textContent = "Richiesta permessi in corso...";
                 statusEl.className = "status-msg";
 
-                // Registrazione esplicita del Service Worker alla radice
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                // Rilevamento automatico del percorso corretto per GitHub Pages
+                const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                const swPath = pathSegments.length > 1 ? `/${pathSegments[0]}/firebase-messaging-sw.js` : '/firebase-messaging-sw.js';
+
+                const registration = await navigator.serviceWorker.register(swPath);
                 
                 const currentToken = await getToken(messaging, {
                     vapidKey: 'BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzahK6VKGw',
