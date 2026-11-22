@@ -206,25 +206,11 @@
 
         .post-footer {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             border-top: 1px solid #21262d;
             padding-top: 10px;
         }
-
-        .like-btn {
-            background: transparent;
-            border: 1px solid #30363d;
-            color: #8b949e;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .like-btn.liked { color: #f85149; border-color: #f85149; }
 
         .delete-btn {
             background: transparent;
@@ -322,8 +308,6 @@
             deleteDoc,
             doc, 
             updateDoc, 
-            arrayUnion, 
-            arrayRemove,
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -381,7 +365,6 @@
             itemsContainer.appendChild(row);
         }
 
-        // Inizializza con 3 righe
         addItemRow('Opzione A', '10', '#238636');
         addItemRow('Opzione B', '20', '#58a6ff');
 
@@ -406,7 +389,6 @@
                         title: data.title || "Senza titolo",
                         desc: data.desc || "",
                         tag: data.tag || "Notizie",
-                        likes: Array.isArray(data.likes) ? data.likes : [],
                         chartData: data.chartData || null,
                         pollData: data.pollData || null
                     });
@@ -431,9 +413,6 @@
 
             let html = '';
             filtered.forEach(post => {
-                const isLiked = currentUser && post.likes && post.likes.includes(currentUser.uid);
-                const likeCount = post.likes ? post.likes.length : 0;
-
                 html += `
                     <div class="post-card">
                         <div class="post-header">
@@ -443,7 +422,6 @@
                         <p class="post-desc">${escapeHtml(post.desc)}</p>
                 `;
 
-                // Renderizza Sondaggio
                 if (post.pollData) {
                     const totalVotes = post.pollData.options.reduce((acc, opt) => acc + (opt.votes ? opt.votes.length : 0), 0);
                     
@@ -462,7 +440,6 @@
                     });
                     html += `</div>`;
                 }
-                // Renderizza Grafico Normale o Tabella
                 else if (post.chartData && post.chartData.type === 'table') {
                     html += `<table style="width:100%; border-collapse: collapse; margin-bottom: 14px; font-size:0.9rem;">
                         <tr style="border-bottom: 1px solid #30363d; text-align: left;"><th style="padding:6px;">Elemento</th><th style="padding:6px;">Valore</th></tr>`;
@@ -477,26 +454,15 @@
                     html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
                 }
 
-                html += `
-                        <div class="post-footer">
-                            <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
-                                ❤ <span>${likeCount}</span> Like
-                            </button>
-                `;
-
+                html += `<div class="post-footer">`;
                 if (currentUser) {
                     html += `<button class="delete-btn" onclick="deletePost('${post.id}')">Elimina</button>`;
                 }
-
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
             });
 
             postsFeed.innerHTML = html;
 
-            // Inizializza i grafici Chart.js (inclusi i grafici a torta dei sondaggi)
             filtered.forEach(post => {
                 if (post.pollData) {
                     const ctx = document.getElementById(`poll-chart-${post.id}`);
@@ -553,7 +519,6 @@
             });
         }
 
-        // Funzione per votare nei sondaggi
         window.votePoll = async function(postId, optionIndex) {
             if (!currentUser) {
                 alert("Devi effettuare l'accesso per votare.");
@@ -566,14 +531,12 @@
 
             let options = JSON.parse(JSON.stringify(post.pollData.options));
 
-            // Rimuovi il voto precedente dell'utente da qualsiasi opzione (voto singolo)
             options.forEach(opt => {
                 if (opt.votes) {
                     opt.votes = opt.votes.filter(uid => uid !== currentUser.uid);
                 }
             });
 
-            // Aggiungi il voto alla nuova opzione selezionata
             if (!options[optionIndex].votes) options[optionIndex].votes = [];
             options[optionIndex].votes.push(currentUser.uid);
 
@@ -584,33 +547,6 @@
             } catch (err) {
                 console.error("Errore voto sondaggio:", err);
                 alert("Impossibile registrare il voto.");
-            }
-        };
-
-        window.toggleLike = async function(postId) {
-            if (!currentUser) {
-                alert("Devi effettuare l'accesso per mettere Like.");
-                return;
-            }
-
-            const postRef = doc(db, "posts", postId);
-            const post = allPosts.find(p => p.id === postId);
-            if (!post) return;
-
-            if (!Array.isArray(post.likes)) post.likes = [];
-            const isLiked = post.likes.includes(currentUser.uid);
-
-            try {
-                if (isLiked) {
-                    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-                    post.likes = post.likes.filter(id => id !== currentUser.uid);
-                } else {
-                    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-                    post.likes.push(currentUser.uid);
-                }
-                renderPosts();
-            } catch (err) {
-                console.error("Errore like:", err);
             }
         };
 
@@ -701,7 +637,6 @@
                     desc: descVal,
                     chartData: chartDataObj,
                     pollData: pollDataObj,
-                    likes: [],
                     createdAt: serverTimestamp()
                 });
 
