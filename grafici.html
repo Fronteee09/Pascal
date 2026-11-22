@@ -267,7 +267,7 @@
             <div style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
                 <label style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi, Valori e Colori:</label>
                 <div id="items-container">
-                    <!-- Le righe verranno generate dinamicamente qui -->
+                    <!-- Righe generate dinamicamente -->
                 </div>
                 <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Elemento</button>
             </div>
@@ -330,7 +330,6 @@
         const createPostBox = document.getElementById('create-post-box');
         const itemsContainer = document.getElementById('items-container');
 
-        // Funzione per aggiungere una riga di input dinamica
         window.addItemRow = function(name = '', value = '', color = '#58a6ff') {
             const row = document.createElement('div');
             row.className = 'item-row';
@@ -343,7 +342,7 @@
             itemsContainer.appendChild(row);
         }
 
-        // Avvia con 3 righe di default
+        // Righe di default iniziali
         addItemRow('Gennaio', '10', '#238636');
         addItemRow('Febbraio', '20', '#58a6ff');
         addItemRow('Marzo', '15', '#d29922');
@@ -475,7 +474,10 @@
             const post = allPosts.find(p => p.id === postId);
             if (!post) return;
 
-            if (!Array.isArray(post.likes)) post.likes = [];
+            if (!Array.isArray(post.likes)) {
+                post.likes = [];
+            }
+
             const isLiked = post.likes.includes(currentUser.uid);
 
             try {
@@ -489,6 +491,7 @@
                 renderPosts();
             } catch (err) {
                 console.error("Errore like:", err);
+                alert("Impossibile aggiornare il like.");
             }
         };
 
