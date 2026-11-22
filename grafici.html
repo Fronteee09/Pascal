@@ -167,6 +167,9 @@
                 <button class="tag-btn" data-tag="Benessere">Benessere</button>
                 <button class="tag-btn" data-tag="Informazioni">Informazioni</button>
                 <button class="tag-btn" data-tag="Notizie">Notizie</button>
+                <button class="tag-btn" data-tag="Informatica">Informatica</button>
+                <button class="tag-btn" data-tag="Sicurezza">Sicurezza</button>
+                <button class="tag-btn" data-tag="Sicurezza digitale">Sicurezza digitale</button>
             </div>
         </div>
 
@@ -174,7 +177,7 @@
             <h3>Crea Nuovo Post con Grafico</h3>
             <div class="form-group">
                 <label>Titolo del Post</label>
-                <input type="text" id="post-title" placeholder="Es. Trend Economico 2026">
+                <input type="text" id="post-title" placeholder="Es. Diffusione dei Malware 2026">
             </div>
             <div class="form-group">
                 <label>Descrizione</label>
@@ -189,6 +192,9 @@
                     <option value="Benessere">Benessere</option>
                     <option value="Informazioni">Informazioni</option>
                     <option value="Notizie">Notizie</option>
+                    <option value="Informatica">Informatica</option>
+                    <option value="Sicurezza">Sicurezza</option>
+                    <option value="Sicurezza digitale">Sicurezza digitale</option>
                 </select>
             </div>
             <div class="form-group">
@@ -242,7 +248,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Inserisci il nickname esatto del tuo account admin
+        // Nickname admin impostato su Fronte
         const AUTHORIZED_NICKNAME = "fronte"; 
 
         let currentUser = null;
