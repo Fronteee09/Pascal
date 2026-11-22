@@ -8,7 +8,8 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
     <!-- Chart.js per i grafici -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+</script>
     <style>
         * {
             margin: 0;
