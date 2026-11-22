@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d1117">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pascal - Grafici</title>
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -250,7 +250,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Nickname admin impostato su Fronte
         const AUTHORIZED_NICKNAME = "fronte"; 
 
         let currentUser = null;
