@@ -149,9 +149,15 @@
 
         .post-footer {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
             border-top: 1px solid #21262d;
             padding-top: 10px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
         }
 
         .like-btn {
@@ -167,6 +173,17 @@
             gap: 6px;
         }
         .like-btn.liked { color: #f85149; border-color: #f85149; }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #da3633;
+            color: #f85149;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover { background-color: #da3633; color: #ffffff; }
 
         .status-msg { text-align: center; font-size: 0.9rem; margin-top: 10px; }
         .error { color: #f85149; }
@@ -229,6 +246,7 @@
             collection, 
             getDocs, 
             addDoc, 
+            deleteDoc,
             doc, 
             updateDoc, 
             arrayUnion, 
@@ -280,7 +298,7 @@
                         title: data.title || "Senza titolo",
                         desc: data.desc || "",
                         tag: data.tag || "Informatica",
-                        likes: data.likes || [],
+                        likes: Array.isArray(data.likes) ? data.likes : [],
                         chartData: data.chartData || null
                     });
                 });
@@ -328,6 +346,13 @@
                             <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
                                 ❤ <span>${likeCount}</span> Like
                             </button>
+                `;
+
+                if (currentUser) {
+                    html += `<button class="delete-btn" onclick="deletePost('${post.id}')">Elimina</button>`;
+                }
+
+                html += `
                         </div>
                     </div>
                 `;
@@ -358,7 +383,7 @@
             });
         }
 
-        // Funzione per gestire i Like
+        // Funzione per gestire e aggiornare i Like su Firebase
         window.toggleLike = async function(postId) {
             if (!currentUser) {
                 alert("Devi effettuare l'accesso per mettere Like.");
@@ -369,19 +394,40 @@
             const post = allPosts.find(p => p.id === postId);
             if (!post) return;
 
+            if (!Array.isArray(post.likes)) {
+                post.likes = [];
+            }
+
             const isLiked = post.likes.includes(currentUser.uid);
 
             try {
                 if (isLiked) {
+                    // Rimuove il like
                     await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
                     post.likes = post.likes.filter(id => id !== currentUser.uid);
                 } else {
+                    // Aggiunge il like
                     await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
                     post.likes.push(currentUser.uid);
                 }
                 renderPosts();
             } catch (err) {
-                console.error("Errore like:", err);
+                console.error("Errore aggiornamento like:", err);
+                alert("Errore durante l'aggiornamento del like.");
+            }
+        };
+
+        // Funzione per eliminare un post
+        window.deletePost = async function(postId) {
+            if (!currentUser) return;
+            if (!confirm("Sei sicuro di voler eliminare questo post?")) return;
+
+            try {
+                await deleteDoc(doc(db, "posts", postId));
+                allPosts = allPosts.filter(p => p.id !== postId);
+                renderPosts();
+            } catch (err) {
+                alert("Errore durante l'eliminazione: " + err.message);
             }
         };
 
