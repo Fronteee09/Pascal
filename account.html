@@ -88,7 +88,6 @@
             display: none;
         }
         .badge-yellow { background-color: #d29922; }
-        .badge-blue { background-color: #58a6ff; }
 
         /* Box Notifiche a scomparsa */
         #notif-box {
@@ -170,11 +169,18 @@
                 <div id="notif-box">Caricamento notifiche...</div>
             </div>
 
+            <!-- Tasto per attivare le Notifiche Push sul telefono -->
+            <div style="margin-top: 12px;">
+                <button id="enable-push-btn" class="btn-secondary" style="border-color: #238636; color: #3fb950;">
+                    🔔 Attiva Notifiche sul Telefono
+                </button>
+            </div>
+
             <!-- Pannello Admin per inviare Annunci Ufficiali (Visibile solo a Fronte) -->
             <div id="admin-broadcast-panel" class="hidden" style="margin-top: 20px; border-top: 1px solid #30363d; padding-top: 16px; text-align: left;">
                 <label style="color: #58a6ff; font-weight: 600;">Invia Annuncio Ufficiale (Mod)</label>
                 <textarea id="broadcast-text" rows="2" placeholder="Scrivi un annuncio per tutti gli utenti..." style="margin-top: 6px; margin-bottom: 8px;"></textarea>
-                <button id="send-broadcast-btn" class="btn-primary" style="padding: 8px;">Invia Annuncio (Pallino Blu)</button>
+                <button id="send-broadcast-btn" class="btn-primary" style="padding: 8px;">Invia Annuncio</button>
             </div>
 
             <button id="logout-btn" class="btn-danger">Esci dall'account</button>
@@ -207,13 +213,13 @@
         import { 
             getFirestore, 
             collection, 
-            addDoc, 
             getDocs, 
             setDoc, 
             doc, 
             getDoc,
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
@@ -228,8 +234,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const messaging = getMessaging(app);
 
         const AUTHORIZED_NICKNAME = "fronte";
+        const VAPID_KEY = "BGV8ajD062Rl_FC0ThkFuy6D9ieZ90FavG5dJpvebhmQgrmNlY7j4I0NfrzdAoxiEtAZvxeRh4TPfqzahK6VKGw";
 
         const authForm = document.getElementById('auth-form');
         const userPanel = document.getElementById('user-panel');
@@ -252,7 +260,6 @@
             statusMsg.className = isError ? 'status-msg error' : 'status-msg success';
         }
 
-        // Gestione Registrazione e Login
         document.getElementById('register-btn').addEventListener('click', async () => {
             const nick = nickInput.value.trim();
             const pass = passInput.value;
@@ -285,7 +292,6 @@
             nickInput.value = ''; passInput.value = '';
         });
 
-        // Stato Autenticazione & Caricamento Notifiche/Annunci
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 authForm.classList.add('hidden');
@@ -293,28 +299,25 @@
                 const nick = user.displayName || user.email.split('@')[0];
                 displayNick.textContent = nick;
 
-                // Controlla se è l'admin Fronte
                 if (user.email === `${AUTHORIZED_NICKNAME}@pascal.local`) {
                     adminBroadcastPanel.classList.remove('hidden');
                 }
 
-                await checkNotificationsAndAnnouncements(user.uid);
+                await checkNotificationsAndAnnouncements();
             } else {
                 authForm.classList.remove('hidden');
                 userPanel.classList.add('hidden');
             }
         });
 
-        // Controlla notifiche post e annunci
-        async function checkNotificationsAndAnnouncements(uid) {
+        async function checkNotificationsAndAnnouncements() {
             try {
-                // Carica notifiche post
                 const notifSnap = await getDocs(collection(db, "posts"));
                 let html = "";
                 if (!notifSnap.empty) {
-                    dotYellow.style.display = 'block'; // Pallino giallo nuovi post
-                    notifSnap.forEach(doc => {
-                        const post = doc.data();
+                    dotYellow.style.display = 'block';
+                    notifSnap.forEach(docSnap => {
+                        const post = docSnap.data();
                         html += `<div class="notif-item"><b>Nuovo post:</b> ${post.title}</div>`;
                     });
                 } else {
@@ -322,11 +325,9 @@
                 }
                 notifBox.innerHTML = html;
 
-                // Controlla Annunci Ufficiali attivi
                 const announceDoc = await getDoc(doc(db, "settings", "announcement"));
                 if (announceDoc.exists()) {
                     const data = announceDoc.data();
-                    // Mostra il pop-up se l'annuncio è nuovo per questo utente
                     popupMessage.textContent = data.text;
                     announcementPopup.style.display = 'flex';
                 }
@@ -335,13 +336,34 @@
             }
         }
 
-        // Mostra/Nascondi box notifiche post
         document.getElementById('toggle-notif-btn').addEventListener('click', () => {
             notifBox.style.display = notifBox.style.display === 'block' ? 'none' : 'block';
-            dotYellow.style.display = 'none'; // Rimuove il pallino quando lette
+            dotYellow.style.display = 'none';
         });
 
-        // Admin invia annuncio ufficiale (Pallino Blu)
+        // Pulsante per attivare le notifiche push sul telefono
+        document.getElementById('enable-push-btn').addEventListener('click', async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                    if (token) {
+                        await setDoc(doc(db, "device_tokens", token), {
+                            token: token,
+                            updatedAt: serverTimestamp()
+                        });
+                        alert("Notifiche sul telefono attivate con successo!");
+                    } else {
+                        alert("Impossibile ottenere il token del dispositivo.");
+                    }
+                } else {
+                    alert("Permesso di notifica negato dal browser.");
+                }
+            } catch (err) {
+                alert("Errore nell'attivazione delle notifiche: " + err.message);
+            }
+        });
+
         document.getElementById('send-broadcast-btn').addEventListener('click', async () => {
             const text = document.getElementById('broadcast-text').value.trim();
             if (!text) return alert("Scrivi un testo per l'annuncio.");
@@ -358,7 +380,6 @@
             }
         });
 
-        // Chiudi pop-up annuncio
         document.getElementById('close-popup-btn').addEventListener('click', () => {
             announcementPopup.style.display = 'none';
         });
