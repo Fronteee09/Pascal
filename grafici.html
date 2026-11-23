@@ -263,7 +263,7 @@
 
             <div class="input-group">
                 <label>Tipo di Contenuto</label>
-                <select id="content-type" onchange="toggleFormMode()">
+                <select id="content-type">
                     <option value="bar">Grafico a Barre</option>
                     <option value="line">Grafico a Linee / Cartesiano</option>
                     <option value="pie">Grafico a Torta</option>
@@ -277,7 +277,7 @@
             <div id="builder-section" style="border-top: 1px dashed #30363d; padding-top: 12px; margin-top: 12px;">
                 <label id="builder-label" style="margin-bottom: 8px; color: #58a6ff; font-weight: bold;">Configura Elementi e Colori:</label>
                 <div id="items-container"></div>
-                <button type="button" class="btn-small" onclick="addItemRow()">+ Aggiungi Elemento / Opzione</button>
+                <button type="button" id="add-item-btn" class="btn-small">+ Aggiungi Elemento / Opzione</button>
             </div>
 
             <button id="publish-btn" class="btn-main">Pubblica</button>
@@ -328,7 +328,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Lista completa degli UID autorizzati (Admin)
+        // Lista degli UID autorizzati (Admin)
         const ADMIN_UIDS = [
             "RDazAVYByPNOQWKLNBSeLNittRn1",
             "xkjwFZGHbxg9DsOV0eoPqU0BrV82"
@@ -345,9 +345,11 @@
         const postsFeed = document.getElementById('posts-feed');
         const createPostBox = document.getElementById('create-post-box');
         const itemsContainer = document.getElementById('items-container');
+        const contentTypeSelect = document.getElementById('content-type');
+        const addItemBtn = document.getElementById('add-item-btn');
 
-        window.toggleFormMode = function() {
-            const type = document.getElementById('content-type').value;
+        function toggleFormMode() {
+            const type = contentTypeSelect.value;
             const builder = document.getElementById('builder-section');
             if (type === 'text') {
                 builder.style.display = 'none';
@@ -356,8 +358,10 @@
             }
         }
 
-        window.addItemRow = function(name = '', value = '10', color = '#58a6ff') {
-            const type = document.getElementById('content-type').value;
+        contentTypeSelect.addEventListener('change', toggleFormMode);
+
+        function addItemRow(name = '', value = '10', color = '#58a6ff') {
+            const type = contentTypeSelect.value;
             const row = document.createElement('div');
             row.className = 'item-row';
             
@@ -365,19 +369,29 @@
                 row.innerHTML = `
                     <input type="text" placeholder="Nome Opzione" value="${name}" class="row-name">
                     <input type="color" value="${color}" class="row-color">
-                    <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
+                    <button type="button" class="remove-row-btn" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
                 `;
             } else {
                 row.innerHTML = `
                     <input type="text" placeholder="Nome elemento" value="${name}" class="row-name">
                     <input type="number" placeholder="Valore" value="${value}" class="row-val">
                     <input type="color" value="${color}" class="row-color">
-                    <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
+                    <button type="button" class="remove-row-btn" style="background:none; border:none; color:#f85149; cursor:pointer; font-weight:bold; padding:4px 8px;">✕</button>
                 `;
             }
+            
+            row.querySelector('.remove-row-btn').addEventListener('click', () => {
+                row.remove();
+            });
+
             itemsContainer.appendChild(row);
         }
 
+        addItemBtn.addEventListener('click', () => {
+            addItemRow('Nuovo', '10', '#58a6ff');
+        });
+
+        // Righe iniziali di default
         addItemRow('Elemento 1', '10', '#238636');
         addItemRow('Elemento 2', '20', '#58a6ff');
 
@@ -446,7 +460,7 @@
                     post.pollData.options.forEach((opt, idx) => {
                         const hasVotedThis = currentUser && opt.votes && opt.votes.includes(currentUser.uid);
                         html += `
-                            <button class="poll-btn ${hasVotedThis ? 'poll-voted' : ''}" onclick="votePoll('${post.id}', ${idx})">
+                            <button class="poll-btn ${hasVotedThis ? 'poll-voted' : ''}" onclick="window.votePollAction('${post.id}', ${idx})">
                                 <span>${escapeHtml(opt.name)}</span>
                                 <span style="font-weight:bold; color:#58a6ff;">${opt.votes ? opt.votes.length : 0} voti</span>
                             </button>
@@ -470,7 +484,7 @@
 
                 html += `<div class="post-footer">`;
                 if (isAdmin(currentUser)) {
-                    html += `<button class="delete-btn" onclick="deletePost('${post.id}')">Elimina</button>`;
+                    html += `<button class="delete-btn" onclick="window.deletePostAction('${post.id}')">Elimina</button>`;
                 }
                 html += `</div></div>`;
             });
@@ -506,3 +520,216 @@
                                             callbacks: {
                                                 label: function(context) {
                                                     const label = context.label || '';
+                                                    const value = context.raw || 0;
+                                                    const dataset = context.dataset.data;
+                                                    const total = dataset.reduce((acc, val) => acc + val, 0);
+                                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                    return `${label}: ${value} voti (${percentage}%)`;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            console.error("Errore rendering sondaggio:", e);
+                        }
+                    }
+                } 
+                else if (post.chartData && post.chartData.type && post.chartData.type !== 'table') {
+                    const ctx = document.getElementById(`chart-${post.id}`);
+                    if (ctx) {
+                        try {
+                            new Chart(ctx, {
+                                type: post.chartData.type,
+                                data: post.chartData,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { labels: { color: '#e6edf3' } },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.raw || 0;
+                                                    if (post.chartData.type === 'pie') {
+                                                        const dataset = context.dataset.data;
+                                                        const total = dataset.reduce((acc, val) => acc + val, 0);
+                                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                        return `${label}: ${value} (${percentage}%)`;
+                                                    }
+                                                    return `${label}: ${value}`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: post.chartData.type !== 'pie' ? {
+                                        x: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                                        y: { ticks: { color: '#8b949e' }, grid: { color: '#30363d' } }
+                                    } : {}
+                                }
+                            });
+                        } catch (e) {
+                            console.error("Errore rendering grafico:", e);
+                        }
+                    }
+                }
+            });
+        }
+
+        window.votePollAction = async function(postId, optionIndex) {
+            if (!currentUser) {
+                alert("Devi effettuare l'accesso per votare.");
+                return;
+            }
+
+            const postRef = doc(db, "posts", postId);
+            const post = allPosts.find(p => p.id === postId);
+            if (!post || !post.pollData) return;
+
+            let options = JSON.parse(JSON.stringify(post.pollData.options));
+
+            options.forEach(opt => {
+                if (opt.votes) {
+                    opt.votes = opt.votes.filter(uid => uid !== currentUser.uid);
+                }
+            });
+
+            if (!options[optionIndex].votes) options[optionIndex].votes = [];
+            options[optionIndex].votes.push(currentUser.uid);
+
+            try {
+                await updateDoc(postRef, { "pollData.options": options });
+                post.pollData.options = options;
+                renderPosts();
+            } catch (err) {
+                console.error("Errore voto sondaggio:", err);
+                alert("Impossibile registrare il voto.");
+            }
+        };
+
+        window.deletePostAction = async function(postId) {
+            if (!isAdmin(currentUser)) return;
+            if (!confirm("Sei sicuro di voler eliminare questo post?")) return;
+
+            try {
+                await deleteDoc(doc(db, "posts", postId));
+                allPosts = allPosts.filter(p => p.id !== postId);
+                renderPosts();
+            } catch (err) {
+                alert("Errore durante l'eliminazione: " + err.message);
+            }
+        };
+
+        document.getElementById('publish-btn').addEventListener('click', async () => {
+            if (!isAdmin(currentUser)) {
+                alert("Non sei autorizzato a pubblicare.");
+                return;
+            }
+
+            const titleVal = document.getElementById('post-title').value.trim();
+            const tagVal = document.getElementById('post-tag').value;
+            const descVal = document.getElementById('post-desc').value.trim();
+            const contentType = contentTypeSelect.value;
+            const statusEl = document.getElementById('publish-status');
+
+            if (!titleVal) {
+                statusEl.textContent = "Inserisci un titolo o una domanda valida.";
+                statusEl.className = "status-msg error";
+                return;
+            }
+
+            let chartDataObj = null;
+            let pollDataObj = null;
+
+            if (contentType === 'poll') {
+                const rows = document.querySelectorAll('.item-row');
+                const pollOptions = [];
+                rows.forEach(row => {
+                    const name = row.querySelector('.row-name').value.trim() || 'Opzione';
+                    const col = row.querySelector('.row-color').value;
+                    pollOptions.push({ name: name, color: col, votes: [] });
+                });
+
+                if (pollOptions.length < 2) {
+                    statusEl.textContent = "Un sondaggio deve avere almeno 2 opzioni.";
+                    statusEl.className = "status-msg error";
+                    return;
+                }
+
+                pollDataObj = { options: pollOptions };
+            } 
+            else if (contentType !== 'text') {
+                const rows = document.querySelectorAll('.item-row');
+                const labels = [];
+                const data = [];
+                const colors = [];
+
+                rows.forEach(row => {
+                    const name = row.querySelector('.row-name').value.trim() || 'Elemento';
+                    const val = parseFloat(row.querySelector('.row-val').value) || 0;
+                    const col = row.querySelector('.row-color').value;
+
+                    labels.push(name);
+                    data.push(val);
+                    colors.push(col);
+                });
+
+                chartDataObj = {
+                    type: contentType,
+                    labels: labels,
+                    datasets: [{
+                        label: titleVal,
+                        data: data,
+                        backgroundColor: contentType === 'line' ? 'rgba(88, 166, 255, 0.2)' : colors,
+                        borderColor: contentType === 'line' ? (colors[0] || '#58a6ff') : '#30363d',
+                        borderWidth: 2,
+                        fill: contentType === 'line' ? true : false,
+                        tension: 0.2
+                    }]
+                };
+            }
+
+            try {
+                statusEl.textContent = "Pubblicazione in corso...";
+                statusEl.className = "status-msg";
+
+                await addDoc(collection(db, "posts"), {
+                    title: titleVal,
+                    tag: tagVal,
+                    desc: descVal,
+                    chartData: chartDataObj,
+                    pollData: pollDataObj,
+                    authorUid: currentUser.uid,
+                    createdAt: serverTimestamp()
+                });
+
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-desc').value = '';
+                statusEl.textContent = "Pubblicato con successo!";
+                statusEl.className = "status-msg success";
+
+                loadPosts();
+            } catch (err) {
+                statusEl.textContent = "Errore: " + err.message;
+                statusEl.className = "status-msg error";
+            }
+        });
+
+        document.querySelectorAll('.tag-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                activeTagFilter = e.target.getAttribute('data-tag');
+                renderPosts();
+            });
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
