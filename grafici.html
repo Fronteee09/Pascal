@@ -206,10 +206,25 @@
 
         .post-footer {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             border-top: 1px solid #21262d;
             padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* Nota Copyright elegante ed evidente */
+        .copyright-notice {
+            font-size: 0.75rem;
+            color: #8b949e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.2px;
+        }
+        .copyright-notice span {
+            color: #58a6ff;
+            font-weight: 500;
         }
 
         .delete-btn {
@@ -486,7 +501,13 @@
                     html += `<div class="chart-wrapper"><canvas id="chart-${post.id}"></canvas></div>`;
                 }
 
-                html += `<div class="post-footer">`;
+                // Footer con nota Copyright evidente ma non invadente e pulsante elimina
+                html += `
+                    <div class="post-footer">
+                        <div class="copyright-notice">
+                            🔒 <span>© 2026 Pascal Community</span> — Tutti i diritti riservati. Sondaggio protetto da copyright.
+                        </div>
+                `;
                 if (isAdmin(currentUser)) {
                     html += `<button class="delete-btn" onclick="window.deletePostAction('${post.id}')">Elimina</button>`;
                 }
