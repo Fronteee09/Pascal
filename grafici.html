@@ -244,7 +244,7 @@
             <h3>Crea Post, Grafico o Sondaggio (Amministratore)</h3>
             <div class="input-group">
                 <label>Titolo / Domanda</label>
-                <input type="text" id="post-title" placeholder="Es. Qual è il tuo framework preferito?">
+                <input type="text" id="post-title" placeholder="Es. Qual è il tuo passatempo preferito?">
             </div>
             <div class="input-group">
                 <label>Tag</label>
@@ -254,6 +254,8 @@
                     <option value="Informatica">Informatica</option>
                     <option value="Sicurezza">Sicurezza</option>
                     <option value="Sicurezza digitale">Sicurezza digitale</option>
+                    <option value="Benessere">Benessere</option>
+                    <option value="Divertimento">Divertimento</option>
                 </select>
             </div>
             <div class="input-group">
@@ -292,6 +294,8 @@
             <button class="tag-btn" data-tag="Informatica">Informatica</button>
             <button class="tag-btn" data-tag="Sicurezza">Sicurezza</button>
             <button class="tag-btn" data-tag="Sicurezza digitale">Sicurezza digitale</button>
+            <button class="tag-btn" data-tag="Benessere">Benessere</button>
+            <button class="tag-btn" data-tag="Divertimento">Divertimento</button>
         </div>
 
         <!-- Feed -->
@@ -392,8 +396,8 @@
         });
 
         // Righe iniziali di default
-        addItemRow('Elemento 1', '10', '#238636');
-        addItemRow('Elemento 2', '20', '#58a6ff');
+        addItemRow('Opzione A', '10', '#238636');
+        addItemRow('Opzione B', '20', '#58a6ff');
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
