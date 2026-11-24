@@ -51,6 +51,22 @@
         }
         .nav-links a:hover { text-decoration: underline; }
 
+        /* Barra di ricerca */
+        .search-bar {
+            margin-bottom: 16px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .search-bar input:focus { border-color: #58a6ff; }
+
         /* Filtri e Tag */
         .tags-bar {
             display: flex;
@@ -301,6 +317,11 @@
             <p id="publish-status" class="status-msg"></p>
         </div>
 
+        <!-- Barra di Ricerca -->
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Cerca tra sondaggi e grafici...">
+        </div>
+
         <!-- Filtri Tag -->
         <div class="tags-bar">
             <button class="tag-btn active" data-tag="tutti">Tutti</button>
@@ -359,6 +380,7 @@
 
         let allPosts = [];
         let activeTagFilter = 'tutti';
+        let searchQuery = '';
         let currentUser = null;
 
         const postsFeed = document.getElementById('posts-feed');
@@ -366,6 +388,7 @@
         const itemsContainer = document.getElementById('items-container');
         const contentTypeSelect = document.getElementById('content-type');
         const addItemBtn = document.getElementById('add-item-btn');
+        const searchInput = document.getElementById('search-input');
 
         function toggleFormMode() {
             const type = contentTypeSelect.value;
@@ -450,7 +473,13 @@
         window.renderPosts = function() {
             const filtered = allPosts.filter(post => {
                 const tag = post.tag || "Notizie";
-                return activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
+                const matchesTag = activeTagFilter === 'tutti' || tag.toLowerCase() === activeTagFilter.toLowerCase();
+                
+                const titleText = (post.title || '').toLowerCase();
+                const descText = (post.desc || '').toLowerCase();
+                const matchesSearch = titleText.includes(searchQuery) || descText.includes(searchQuery);
+
+                return matchesTag && matchesSearch;
             });
 
             if (filtered.length === 0) {
@@ -740,6 +769,12 @@
                 statusEl.textContent = "Errore: " + err.message;
                 statusEl.className = "status-msg error";
             }
+        });
+
+        // Evento digitazione barra di ricerca
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            renderPosts();
         });
 
         document.querySelectorAll('.tag-btn').forEach(btn => {
