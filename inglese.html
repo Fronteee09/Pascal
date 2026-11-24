@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal - Inglese</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+        }
+
+        h1 { font-size: 1.8rem; color: #ffffff; }
+
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-left: 15px;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+
+        /* Box Introduttivo con Barra Superiore */
+        .intro-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .intro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 10px;
+        }
+
+        .intro-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .intro-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #58a6ff;
+            background-color: #0d1117;
+        }
+
+        .intro-title-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .subscribe-btn {
+            background-color: #238636;
+            color: #ffffff;
+            border: 1px solid #2ea043;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .subscribe-btn:hover { background-color: #2ea043; }
+        .subscribe-btn.subscribed {
+            background-color: #21262d;
+            color: #8b949e;
+            border-color: #30363d;
+        }
+
+        .intro-desc {
+            font-size: 0.95rem;
+            color: #8b949e;
+            line-height: 1.5;
+        }
+
+        /* Form Creazione Minilezione (Admin Only) */
+        #create-lesson-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none; /* Visibile solo ai 2 UID */
+        }
+
+        #create-lesson-box h3 { margin-bottom: 12px; font-size: 1.1rem; color: #58a6ff; }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 4px; color: #c9d1d9; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        input:focus, textarea:focus { border-color: #58a6ff; }
+
+        button.btn-main {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+        button.btn-main:hover { background-color: #2ea043; }
+
+        /* Feed Minilezioni */
+        .lesson-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .lesson-title { font-size: 1.2rem; font-weight: bold; color: #ffffff; }
+        .lesson-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .lesson-content { color: #c9d1d9; font-size: 0.95rem; line-height: 1.5; margin-bottom: 14px; white-space: pre-wrap; }
+
+        .lesson-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #21262d;
+            padding-top: 10px;
+        }
+
+        .copyright-notice {
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+        .copyright-notice span { color: #58a6ff; font-weight: 500; }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #da3633;
+            color: #f85149;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover { background-color: #da3633; color: #ffffff; }
+
+        .status-msg { text-align: center; font-size: 0.9rem; margin-top: 10px; }
+        .error { color: #f85149; }
+        .success { color: #3fb950; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pascal Inglese</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="altro.html">Altro</a>
+                <a href="account.html">Account</a>
+            </div>
+        </header>
+
+        <!-- Box Introduttivo con Barra Superiore -->
+        <div class="intro-box">
+            <div class="intro-header">
+                <div class="intro-user-info">
+                    <img src="uk.png" alt="UK" class="intro-avatar">
+                    <span class="intro-title-text">Area Grammatica & Minilezioni</span>
+                </div>
+                <button id="subscribe-btn" class="subscribe-btn" onclick="toggleSubscribe()">Iscriviti</button>
+            </div>
+            <p class="intro-desc">
+                Il posto ideale per ripassare le basi della grammatica inglese, studiare regole chiave e scoprire minilezioni pratiche curate dal team.
+            </p>
+        </div>
+
+        <!-- Form Pubblicazione Minilezione (Riservato ai 2 Admin) -->
+        <div id="create-lesson-box">
+            <h3>Crea Nuova Minilezione (Amministratore)</h3>
+            <div class="input-group">
+                <label>Titolo della lezione</label>
+                <input type="text" id="lesson-title" placeholder="Es. Simple Present vs Present Continuous">
+            </div>
+            <div class="input-group">
+                <label>Link Immagine (es. link.png o URL)</label>
+                <input type="text" id="lesson-image" placeholder="Inserisci il link dell'immagine illustrativa">
+            </div>
+            <div class="input-group">
+                <label>Testo / Spiegazione della minilezione</label>
+                <textarea id="lesson-text" rows="4" placeholder="Scrivi qui la spiegazione grammaticale..."></textarea>
+            </div>
+            <button id="publish-btn" class="btn-main">Pubblica Minilezione</button>
+            <p id="publish-status" class="status-msg"></p>
+        </div>
+
+        <!-- Feed delle Minilezioni -->
+        <div id="lessons-feed">
+            <p style="text-align:center; color:#8b949e; padding: 20px;">Caricamento minilezioni...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            addDoc, 
+            deleteDoc,
+            doc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiTdOYbEMcxcFECQcl6aJWTZaei4lmQ3E",
+            authDomain: "pascal-b0d51.firebaseapp.com",
+            projectId: "pascal-b0d51",
+            storageBucket: "pascal-b0d51.firebasestorage.app",
+            messagingSenderId: "216010606072",
+            appId: "1:216010606072:web:faeecf8f2f806ce9c3820d",
+            measurementId: "G-SCN8C392NJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // I due UID autorizzati rigorosamente
+        const ADMIN_UIDS = [
+            "RDazAVYByPNOQWKLNBSeLNittRn1",
+            "xkjwFZGHbxg9DsOV0eoPqU0BrV82"
+        ];
+
+        function isAdmin(user) {
+            return user && ADMIN_UIDS.includes(user.uid);
+        }
+
+        let allLessons = [];
+        let currentUser = null;
+
+        const lessonsFeed = document.getElementById('lessons-feed');
+        const createLessonBox = document.getElementById('create-lesson-box');
+
+        // Gestione iscrizione (salvata in localStorage)
+        let isSubscribed = localStorage.getItem('pascal_english_subbed') === 'true';
+        updateSubscribeUI();
+
+        window.toggleSubscribe = function() {
+            isSubscribed = !isSubscribed;
+            localStorage.setItem('pascal_english_subbed', isSubscribed);
+            updateSubscribeUI();
+        }
+
+        function updateSubscribeUI() {
+            const btn = document.getElementById('subscribe-btn');
+            if (isSubscribed) {
+                btn.textContent = "Iscritto ✓";
+                btn.className = "subscribe-btn subscribed";
+            } else {
+                btn.textContent = "Iscriviti";
+                btn.className = "subscribe-btn";
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (isAdmin(user)) {
+                createLessonBox.style.display = 'block';
+            } else {
+                createLessonBox.style.display = 'none';
+            }
+            loadLessons();
+        });
+
+        async function loadLessons() {
+            try {
+                // Usiamo una collezione dedicata per le lezioni di inglese su Firestore
+                const querySnapshot = await getDocs(collection(db, "english_lessons"));
+                allLessons = [];
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    allLessons.push({
+                        id: docSnap.id,
+                        title: data.title || "Senza titolo",
+                        imageUrl: data.imageUrl || "",
+                        text: data.text || "",
+                        authorUid: data.authorUid || ""
+                    });
+                });
+                renderLessons();
+            } catch (err) {
+                console.error("Errore caricamento lezioni:", err);
+                lessonsFeed.innerHTML = `<p style="text-align:center; color:#f85149;">Errore nel caricamento delle minilezioni.</p>`;
+            }
+        }
+
+        window.renderLessons = function() {
+            if (allLessons.length === 0) {
+                lessonsFeed.innerHTML = `<p style="text-align:center; color:#8b949e; padding: 20px;">Nessuna minilezione disponibile al momento.</p>`;
+                return;
+            }
+
+            let html = '';
+            allLessons.forEach(lesson => {
+                html += `
+                    <div class="lesson-card">
+                        <div class="lesson-header">
+                            <span class="lesson-title">${escapeHtml(lesson.title)}</span>
+                        </div>
+                `;
+
+                if (lesson.imageUrl) {
+                    html += `<img src="${escapeHtml(lesson.imageUrl)}" alt="Immagine lezione" class="lesson-img">`;
+                }
+
+                html += `
+                        <div class="lesson-content">${escapeHtml(lesson.text)}</div>
+                        <div class="lesson-footer">
+                            <div class="copyright-notice">
+                                🔒 <span>© 2026 Pascal team</span> — Minilezione protetta.
+                            </div>
+                `;
+
+                if (isAdmin(currentUser)) {
+                    html += `<button class="delete-btn" onclick="window.deleteLessonAction('${lesson.id}')">Elimina</button>`;
+                }
+
+                html += `</div></div>`;
+            });
+
+            lessonsFeed.innerHTML = html;
+        }
+
+        window.deleteLessonAction = async function(lessonId) {
+            if (!isAdmin(currentUser)) return;
+            if (!confirm("Sei sicuro di voler eliminare questa minilezione?")) return;
+
+            try {
+                await deleteDoc(doc(db, "english_lessons", lessonId));
+                allLessons = allLessons.filter(l => l.id !== lessonId);
+                renderLessons();
+            } catch (err) {
+                alert("Errore durante l'eliminazione: " + err.message);
+            }
+        };
+
+        document.getElementById('publish-btn').addEventListener('click', async () => {
+            if (!isAdmin(currentUser)) {
+                alert("Non sei autorizzato a pubblicare.");
+                return;
+            }
+
+            const titleVal = document.getElementById('lesson-title').value.trim();
+            const imageVal = document.getElementById('lesson-image').value.trim();
+            const textVal = document.getElementById('lesson-text').value.trim();
+            const statusEl = document.getElementById('publish-status');
+
+            if (!titleVal || !textVal) {
+                statusEl.textContent = "Inserisci almeno un titolo e il testo della minilezione.";
+                statusEl.className = "status-msg error";
+                return;
+            }
+
+            try {
+                statusEl.textContent = "Pubblicazione in corso...";
+                statusEl.className = "status-msg";
+
+                await addDoc(collection(db, "english_lessons"), {
+                    title: titleVal,
+                    imageUrl: imageVal,
+                    text: textVal,
+                    authorUid: currentUser.uid,
+                    createdAt: serverTimestamp()
+                });
+
+                document.getElementById('lesson-title').value = '';
+                document.getElementById('lesson-image').value = '';
+                document.getElementById('lesson-text').value = '';
+                statusEl.textContent = "Minilezione pubblicata con successo!";
+                statusEl.className = "status-msg success";
+
+                loadLessons();
+            } catch (err) {
+                statusEl.textContent = "Errore: " + err.message;
+                statusEl.className = "status-msg error";
+            }
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
