@@ -69,6 +69,14 @@
             max-width: 480px;
         }
 
+        .green-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            width: 100%;
+            max-width: 480px;
+        }
+
         .btn {
             flex: 1;
             display: inline-block;
@@ -91,10 +99,10 @@
             transform: translateY(-2px);
         }
 
-        /* Stile per il pulsante verde */
+        /* Stile per i pulsanti verdi */
         .btn-green {
-            display: block;
-            width: 100%;
+            flex: 1;
+            display: inline-block;
             text-align: center;
             padding: 14px 20px;
             background-color: #238636;
@@ -105,7 +113,6 @@
             border: 1px solid #2ea043;
             border-radius: 10px;
             transition: all 0.2s ease;
-            margin-top: 16px;
         }
 
         .btn-green:hover {
@@ -155,9 +162,10 @@
         <a href="mappe.html" class="btn">Mappe</a>
     </div>
 
-    <!-- Pulsante Altre cose in verde -->
-    <div style="width: 100%; max-width: 480px;">
+    <!-- Pulsanti verdi affiancati -->
+    <div class="green-buttons">
         <a href="altro.html" class="btn-green">Altre cose</a>
+        <a href="codingpage.html" class="btn-green">Coding Page</a>
     </div>
 
     <div class="account-container">
