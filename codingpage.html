@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal - Coding Playground</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <!-- Skulpt per eseguire Python direttamente nel browser senza server -->
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+        }
+
+        h1 { font-size: 1.8rem; color: #ffffff; }
+
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-left: 15px;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+
+        /* Barra Strumenti Editor */
+        .toolbar {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px 12px 0 0;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select {
+            padding: 8px 12px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus { border-color: #58a6ff; }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-run {
+            background-color: #238636;
+            color: #ffffff;
+            border: 1px solid #2ea043;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-run:hover { background-color: #2ea043; }
+
+        .btn-clear {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .btn-clear:hover { background-color: #30363d; }
+
+        /* Area Codice */
+        .editor-box {
+            width: 100%;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        textarea#code-input {
+            width: 100%;
+            height: 240px;
+            background-color: #0d1117;
+            color: #e6edf3;
+            border: none;
+            padding: 16px;
+            font-family: "Fira Code", Consolas, Monaco, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+        }
+
+        /* Griglia Risultati: Design + Console */
+        .output-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .output-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background-color: #21262d;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #8b949e;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Iframe per il Design */
+        iframe#design-frame {
+            width: 100%;
+            height: 260px;
+            border: none;
+            background-color: #ffffff;
+        }
+
+        /* Box Console / Risultato testuale */
+        pre#console-output {
+            width: 100%;
+            height: 260px;
+            padding: 14px;
+            background-color: #0d1117;
+            color: #3fb950;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .console-error { color: #f85149; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pascal Coding Lab</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="coding.html">Coding</a>
+                <a href="altro.html">Altro</a>
+            </div>
+        </header>
+
+        <!-- Barra Strumenti -->
+        <div class="toolbar" id="toolbar-border">
+            <div class="lang-selector">
+                <label for="lang-select" style="font-size: 0.9rem; color: #8b949e;">Linguaggio:</label>
+                <select id="lang-select" onchange="changeTemplate()">
+                    <option value="html">HTML + Design</option>
+                    <option value="css">CSS (con anteprima)</option>
+                    <option value="js">JavaScript</option>
+                    <option value="python">Python</option>
+                </select>
+            </div>
+            <div class="action-btns">
+                <button class="btn-clear" onclick="clearEditor()">Pulisci</button>
+                <button class="btn-run" onclick="runCode()">Run ▶</button>
+            </div>
+        </div>
+
+        <!-- Area di scrittura codice -->
+        <div class="editor-box">
+            <textarea id="code-input" spellcheck="false" placeholder="Scrivi qui il tuo codice..."></textarea>
+        </div>
+
+        <!-- Risultati: Design e Console -->
+        <div class="output-grid">
+            <!-- Pannello Design -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>🎨 Design / Anteprima Visiva</span>
+                </div>
+                <iframe id="design-frame" sandbox="allow-scripts"></iframe>
+            </div>
+
+            <!-- Pannello Risultato / Console -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>💻 Risultato / Console</span>
+                </div>
+                <pre id="console-output">Premi "Run ▶" per eseguire il codice...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const codeInput = document.getElementById('code-input');
+        const langSelect = document.getElementById('lang-select');
+        const designFrame = document.getElementById('design-frame');
+        const consoleOutput = document.getElementById('console-output');
+        const toolbarBorder = document.getElementById('toolbar-border');
+
+        // Esempi pronti per ogni linguaggio
+        const templates = {
+            html: `<div style="font-family: sans-serif; text-align: center; padding: 30px;">
+  <h2 style="color: #1f6feb;">Ciao da Pascal!</h2>
+  <p>Questo è un elemento HTML renderizzato dal vivo.</p>
+  <button onclick="console.log('Pulsante cliccato!')" style="padding: 10px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    Cliccami
+  </button>
+</div>`,
+            css: `/* Scrivi il tuo CSS qui: verrà applicato a un box di prova */
+body {
+  background: #0d1117;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.card {
+  background: linear-gradient(135deg, #1f6feb, #238636);
+  color: white;
+  padding: 25px 40px;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}`,
+            js: `// Scrivi il tuo codice JavaScript
+const numeri = [10, 20, 30, 40];
+const somma = numeri.reduce((a, b) => a + b, 0);
+
+console.log("Array:", numeri);
+console.log("Somma totale:", somma);
+
+// Puoi anche generare HTML dinamico
+document.body.innerHTML = "<h2 style='font-family:sans-serif; color:#238636; padding:20px;'>Risultato JS: " + somma + "</h2>";`,
+            python: `# Scrivi il tuo codice Python
+nome = "Pascal Team"
+for i in range(1, 4):
+    print(f"Esecuzione #{i} per {nome}")
+
+risultato = 15 * 4
+print("Calcolo 15 * 4 =", risultato)`
+        };
+
+        const langColors = {
+            html: '#f85149',   // Rosso
+            css: '#238636',    // Verde
+            js: '#d29922',     // Giallo
+            python: '#58a6ff'  // Blu
+        };
+
+        function changeTemplate() {
+            const lang = langSelect.value;
+            codeInput.value = templates[lang];
+            toolbarBorder.style.borderTop = `3px solid ${langColors[lang]}`;
+            runCode();
+        }
+
+        function clearEditor() {
+            codeInput.value = '';
+            consoleOutput.textContent = 'Console pulita.';
+            designFrame.srcdoc = '';
+        }
+
+        function appendConsole(text, isError = false) {
+            const span = document.createElement('span');
+            if (isError) span.className = 'console-error';
+            span.textContent = text + '\n';
+            consoleOutput.appendChild(span);
+        }
+
+        function runCode() {
+            const lang = langSelect.value;
+            const code = codeInput.value;
+            consoleOutput.innerHTML = '';
+
+            if (lang === 'html') {
+                // Cattura i console.log dentro l'iframe e li mostra nella console
+                const wrappedHtml = `
+                    <script>
+                        const origLog = console.log;
+                        console.log = function(...args) {
+                            window.parent.postMessage({ type: 'log', data: args.join(' ') }, '*');
+                            origLog.apply(console, args);
+                        };
+                        window.onerror = function(msg) {
+                            window.parent.postMessage({ type: 'error', data: msg }, '*');
+                        };
+                    <\/script>
+                    ${code}
+                `;
+                designFrame.srcdoc = wrappedHtml;
+                appendConsole("HTML renderizzato nel pannello Design.");
+            } 
+            else if (lang === 'css') {
+                const previewHtml = `
+                    <style>${code}</style>
+                    <div class="card">Anteprima Stile CSS</div>
+                `;
+                designFrame.srcdoc = previewHtml;
+                appendConsole("Foglio di stile CSS applicato al box .card nel pannello Design.");
+            } 
+            else if (lang === 'js') {
+                const wrappedJs = `
+                    <script>
+                        const origLog = console.log;
+                        console.log = function(...args) {
+                            window.parent.postMessage({ type: 'log', data: args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ') }, '*');
+                            origLog.apply(console, args);
+                        };
+                        try {
+                            ${code}
+                        } catch (e) {
+                            window.parent.postMessage({ type: 'error', data: e.toString() }, '*');
+                        }
+                    <\/script>
+                `;
+                designFrame.srcdoc = wrappedJs;
+            } 
+            else if (lang === 'python') {
+                designFrame.srcdoc = `
+                    <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                        <h3>🐍 Ambiente Python</h3>
+                        <p>L'output testuale viene mostrato nella Console qui a fianco.</p>
+                    </div>
+                `;
+                runPython(code);
+            }
+        }
+
+        // Ascolta i messaggi provenienti dall'iframe (console.log / errori)
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'log') {
+                appendConsole('> ' + event.data.data);
+            } else if (event.data && event.data.type === 'error') {
+                appendConsole('Errore: ' + event.data.data, true);
+            }
+        });
+
+        // Esecuzione Python tramite Skulpt
+        function runPython(code) {
+            Sk.configure({
+                output: function(text) {
+                    consoleOutput.textContent += text;
+                },
+                read: function(x) {
+                    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                        throw "File non trovato: '" + x + "'";
+                    }
+                    return Sk.builtinFiles["files"][x];
+                }
+            });
+
+            Sk.misceval.asyncToPromise(function() {
+                return Sk.importMainWithBody("<stdin>", false, code, true);
+            }).catch(function(err) {
+                appendConsole(err.toString(), true);
+            });
+        }
+
+        // Avvio iniziale con il template HTML
+        window.onload = changeTemplate;
+    </script>
+</body>
+</html>
