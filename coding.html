@@ -180,13 +180,13 @@
 
         .post-content { color: #c9d1d9; font-size: 0.95rem; line-height: 1.5; margin-bottom: 14px; white-space: pre-wrap; }
 
-        /* Stile Box Codice per Script */
+        /* Stile Box Codice Contornato con Barra Colorata */
         .code-container {
-            border: 1px solid #30363d;
             border-radius: 8px;
             margin-bottom: 14px;
             overflow: hidden;
             background-color: #0d1117;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .code-header-bar {
@@ -425,7 +425,7 @@
                     html += `<img src="${escapeHtml(post.imageUrl)}" alt="Immagine progetto" class="post-img">`;
                 }
 
-                // Controllo se il testo inizia con #coding (es. #coding js, #coding python, ecc.)
+                // Controllo se il testo inizia con #coding
                 let rawText = post.text || '';
                 let trimmedText = rawText.trim();
                 
@@ -454,11 +454,11 @@
                         langName = 'CSS';
                     }
 
-                    // ID univoco per il blocco di codice per facilitare la copia
                     let codeId = 'code-block-' + Math.random().toString(36).substr(2, 9);
 
+                    // Qui applichiamo il bordo contornato del colore del linguaggio e la barra in alto colorata
                     html += `
-                        <div class="code-container">
+                        <div class="code-container" style="border: 1.5px solid ${barColor};">
                             <div class="code-header-bar" style="background-color: ${barColor};">
                                 <span>${langName}</span>
                                 <button class="copy-code-btn" onclick="window.copyCodeText('${codeId}')">Copia</button>
@@ -485,9 +485,8 @@
             });
 
             postsFeed.innerHTML = html;
-        }
+        };
 
-        // Funzione per copiare il testo del codice negli appunti
         window.copyCodeText = function(elementId) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -530,7 +529,6 @@
                 return;
             }
 
-            // Se l'utente ha selezionato un linguaggio dal menu a tendina, aggiungiamo automaticamente #coding [lang] in cima
             if (langVal !== 'none') {
                 textVal = `#coding ${langVal}\n` + textVal;
             }
