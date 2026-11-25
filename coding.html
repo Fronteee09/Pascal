@@ -425,11 +425,10 @@
                     html += `<img src="${escapeHtml(post.imageUrl)}" alt="Immagine progetto" class="post-img">`;
                 }
 
-                // Controllo se il testo inizia con #coding
                 let rawText = post.text || '';
                 let trimmedText = rawText.trim();
                 
-                if (trimmedText.startsWith('#coding')) {
+                if (trimmedText.toLowerCase().startsWith('#coding')) {
                     let firstLineEnd = trimmedText.indexOf('\n');
                     let headerLine = firstLineEnd !== -1 ? trimmedText.substring(0, firstLineEnd) : trimmedText;
                     let codeBody = firstLineEnd !== -1 ? trimmedText.substring(firstLineEnd + 1).trim() : '';
@@ -456,7 +455,6 @@
 
                     let codeId = 'code-block-' + Math.random().toString(36).substr(2, 9);
 
-                    // Qui applichiamo il bordo contornato del colore del linguaggio e la barra in alto colorata
                     html += `
                         <div class="code-container" style="border: 1.5px solid ${barColor};">
                             <div class="code-header-bar" style="background-color: ${barColor};">
