@@ -127,8 +127,8 @@
             background: transparent;
         }
 
-        /* Box Bianco per scrivere */
-        .white-textarea {
+        /* Box Editor Contenuto (contenteditable per supportare HTML e stili mirati) */
+        .white-editor {
             width: 100%;
             height: 250px;
             background-color: #ffffff;
@@ -138,7 +138,7 @@
             padding: 14px;
             font-size: 1rem;
             line-height: 1.5;
-            resize: vertical;
+            overflow-y: auto;
             outline: none;
         }
 
@@ -293,15 +293,15 @@
 
             <!-- Toolbar di formattazione -->
             <div class="toolbar">
-                <button class="tool-btn" onclick="formatText('bold')"><b>B</b> (Grassetto)</button>
-                <button class="tool-btn" onclick="formatText('italic')"><i>I</i> (Corsivo)</button>
+                <button class="tool-btn" type="button" onclick="document.execCommand('bold', false, null)"><b>B</b> (Grassetto)</button>
+                <button class="tool-btn" type="button" onclick="document.execCommand('italic', false, null)"><i>I</i> (Corsivo)</button>
                 
                 <select id="size-select" onchange="changeFontSize(this.value)">
                     <option value="" disabled selected>Dimensione</option>
-                    <option value="12px">Piccolo (12px)</option>
-                    <option value="16px">Normale (16px)</option>
-                    <option value="20px">Grande (20px)</option>
-                    <option value="26px">Titolo (26px)</option>
+                    <option value="3">Piccolo</option>
+                    <option value="4">Normale</option>
+                    <option value="5">Grande</option>
+                    <option value="6">Titolo</option>
                 </select>
 
                 <div style="display: flex; align-items: center; gap: 6px; color: #c9d1d9; font-size: 0.85rem;">
@@ -309,8 +309,8 @@
                 </div>
             </div>
 
-            <!-- Box bianco di scrittura -->
-            <textarea id="file-content" class="white-textarea" placeholder="Scrivi qui il contenuto del tuo file..."></textarea>
+            <!-- Box bianco modificabile con supporto stili mirati -->
+            <div id="file-content" class="white-editor" contenteditable="true" placeholder="Scrivi qui il contenuto del tuo file..."></div>
 
             <div class="action-bar">
                 <button class="btn-main" onclick="saveFile()">Salva File</button>
@@ -340,34 +340,19 @@
         const modal = document.getElementById('projects-modal');
         const projectsListContainer = document.getElementById('projects-list-container');
 
-        // Funzioni di formattazione base per la textarea
-        function formatText(style) {
-            const start = fileContent.selectionStart;
-            const end = fileContent.selectionEnd;
-            const selectedText = fileContent.value.substring(start, end);
-            
-            if (!selectedText) return;
-
-            let formatted = selectedText;
-            if (style === 'bold') formatted = `**${selectedText}**`;
-            if (style === 'italic') formatted = `*${selectedText}*`;
-
-            fileContent.value = fileContent.value.substring(0, start) + formatted + fileContent.value.substring(end);
-            fileContent.focus();
-        }
-
+        // Funzioni di formattazione native per applicare lo stile solo alla selezione
         function changeFontSize(size) {
-            fileContent.style.fontSize = size;
+            document.execCommand('fontSize', false, size);
         }
 
         function changeFontColor(color) {
-            fileContent.style.color = color;
+            document.execCommand('foreColor', false, color);
         }
 
-        // Salvataggio dei file in localStorage
+        // Salvataggio dei file in localStorage (salva l'HTML formattato senza asterischi)
         function saveFile() {
             const name = fileNameInput.value.trim();
-            const content = fileContent.value.trim();
+            const content = fileContent.innerHTML.trim();
 
             if (!name) {
                 saveStatus.style.color = '#f85149';
@@ -375,7 +360,7 @@
                 return;
             }
 
-            if (!content) {
+            if (!fileContent.innerText.trim()) {
                 saveStatus.style.color = '#f85149';
                 saveStatus.textContent = "Il file è vuoto.";
                 return;
@@ -418,11 +403,16 @@
             let html = '';
             keys.forEach(fileName => {
                 const fileData = savedFiles[fileName];
+                // Crea un'anteprima testuale pulita
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = fileData.content;
+                const previewText = tempDiv.textContent || tempDiv.innerText || "";
+
                 html += `
                     <div class="project-item">
                         <div class="project-info" onclick="loadFile('${fileName.replace(/'/g, "\\'")}')">
                             <div class="project-name">${fileName}</div>
-                            <div class="project-preview">${fileData.content}</div>
+                            <div class="project-preview">${previewText}</div>
                         </div>
                         <div class="project-actions">
                             <button class="btn-load" onclick="loadFile('${fileName.replace(/'/g, "\\'")}')">Apri</button>
@@ -440,7 +430,7 @@
             let savedFiles = JSON.parse(localStorage.getItem('pascal_saved_files')) || {};
             if (savedFiles[fileName]) {
                 fileNameInput.value = fileName;
-                fileContent.value = savedFiles[fileName].content;
+                fileContent.innerHTML = savedFiles[fileName].content;
                 closeProjectsModal();
             }
         }
