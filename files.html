@@ -1,1 +1,467 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal - Documenti</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 16px;
+        }
+
+        h1 { font-size: 1.8rem; color: #ffffff; }
+
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-left: 15px;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+
+        /* Box Editor Principale */
+        .editor-container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .editor-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: #58a6ff; }
+
+        /* Barra degli Strumenti di Formattazione */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            background-color: #21262d;
+            padding: 10px;
+            border-radius: 6px 6px 0 0;
+            border: 1px solid #30363d;
+            border-bottom: none;
+        }
+
+        .tool-btn {
+            background-color: #161b22;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .tool-btn:hover { background-color: #30363d; border-color: #58a6ff; }
+
+        .toolbar select {
+            background-color: #161b22;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .toolbar input[type="color"] {
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        /* Box Bianco per scrivere */
+        .white-textarea {
+            width: 100%;
+            height: 250px;
+            background-color: #ffffff;
+            color: #24292f;
+            border: 1px solid #30363d;
+            border-radius: 0 0 6px 6px;
+            padding: 14px;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .btn-main {
+            flex: 1;
+            background-color: #238636;
+            color: white;
+            border: 1px solid #2ea043;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-main:hover { background-color: #2ea043; }
+
+        .btn-projects {
+            flex: 1;
+            background-color: #21262d;
+            color: #58a6ff;
+            border: 1px solid #30363d;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-projects:hover { background-color: #30363d; border-color: #58a6ff; color: #fff; }
+
+        /* Finestra Pop-up (Modale) per i Progetti */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+
+        .modal-title { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        
+        .close-modal {
+            background: transparent;
+            border: none;
+            color: #8b949e;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .close-modal:hover { color: #fff; }
+
+        .projects-list {
+            overflow-y: auto;
+            max-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .project-item {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-info {
+            cursor: pointer;
+            flex: 1;
+        }
+        .project-name { font-weight: bold; color: #58a6ff; font-size: 1rem; margin-bottom: 4px; }
+        .project-preview { font-size: 0.85rem; color: #8b949e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+
+        .project-actions { display: flex; gap: 8px; }
+
+        .btn-load {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-load:hover { background-color: #2ea043; }
+
+        .btn-delete {
+            background-color: transparent;
+            border: 1px solid #da3633;
+            color: #f85149;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-delete:hover { background-color: #da3633; color: #fff; }
+
+        .status-msg { text-align: center; font-size: 0.85rem; margin-top: 8px; color: #3fb950; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pascal Documenti</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="altro.html">Altro</a>
+                <a href="account.html">Account</a>
+            </div>
+        </header>
+
+        <!-- Editor Box -->
+        <div class="editor-container">
+            <div class="editor-title">Crea o Modifica Documento</div>
+            
+            <div class="input-group">
+                <input type="text" id="file-name" placeholder="Nome del file (es. Appunti di Matematica)">
+            </div>
+
+            <!-- Toolbar di formattazione -->
+            <div class="toolbar">
+                <button class="tool-btn" onclick="formatText('bold')"><b>B</b> (Grassetto)</button>
+                <button class="tool-btn" onclick="formatText('italic')"><i>I</i> (Corsivo)</button>
+                
+                <select id="size-select" onchange="changeFontSize(this.value)">
+                    <option value="" disabled selected>Dimensione</option>
+                    <option value="12px">Piccolo (12px)</option>
+                    <option value="16px">Normale (16px)</option>
+                    <option value="20px">Grande (20px)</option>
+                    <option value="26px">Titolo (26px)</option>
+                </select>
+
+                <div style="display: flex; align-items: center; gap: 6px; color: #c9d1d9; font-size: 0.85rem;">
+                    Colore: <input type="color" id="color-picker" onchange="changeFontColor(this.value)" value="#24292f">
+                </div>
+            </div>
+
+            <!-- Box bianco di scrittura -->
+            <textarea id="file-content" class="white-textarea" placeholder="Scrivi qui il contenuto del tuo file..."></textarea>
+
+            <div class="action-bar">
+                <button class="btn-main" onclick="saveFile()">Salva File</button>
+                <button class="btn-projects" onclick="openProjectsModal()">I miei progetti</button>
+            </div>
+            <p id="save-status" class="status-msg"></p>
+        </div>
+    </div>
+
+    <!-- Modale / Pop-up Progetti -->
+    <div class="modal-overlay" id="projects-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title">📁 I tuoi Progetti / File Salvati</span>
+                <button class="close-modal" onclick="closeProjectsModal()">×</button>
+            </div>
+            <div class="projects-list" id="projects-list-container">
+                <!-- Verranno caricati dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileContent = document.getElementById('file-content');
+        const fileNameInput = document.getElementById('file-name');
+        const saveStatus = document.getElementById('save-status');
+        const modal = document.getElementById('projects-modal');
+        const projectsListContainer = document.getElementById('projects-list-container');
+
+        // Funzioni di formattazione base per la textarea
+        function formatText(style) {
+            const start = fileContent.selectionStart;
+            const end = fileContent.selectionEnd;
+            const selectedText = fileContent.value.substring(start, end);
+            
+            if (!selectedText) return;
+
+            let formatted = selectedText;
+            if (style === 'bold') formatted = `**${selectedText}**`;
+            if (style === 'italic') formatted = `*${selectedText}*`;
+
+            fileContent.value = fileContent.value.substring(0, start) + formatted + fileContent.value.substring(end);
+            fileContent.focus();
+        }
+
+        function changeFontSize(size) {
+            fileContent.style.fontSize = size;
+        }
+
+        function changeFontColor(color) {
+            fileContent.style.color = color;
+        }
+
+        // Salvataggio dei file in localStorage
+        function saveFile() {
+            const name = fileNameInput.value.trim();
+            const content = fileContent.value.trim();
+
+            if (!name) {
+                saveStatus.style.color = '#f85149';
+                saveStatus.textContent = "Inserisci un nome per il file prima di salvare.";
+                return;
+            }
+
+            if (!content) {
+                saveStatus.style.color = '#f85149';
+                saveStatus.textContent = "Il file è vuoto.";
+                return;
+            }
+
+            let savedFiles = JSON.parse(localStorage.getItem('pascal_saved_files')) || {};
+            savedFiles[name] = {
+                content: content,
+                date: new Date().toLocaleDateString()
+            };
+
+            localStorage.setItem('pascal_saved_files', JSON.stringify(savedFiles));
+
+            saveStatus.style.color = '#3fb950';
+            saveStatus.textContent = `File "${name}" salvato con successo!`;
+
+            setTimeout(() => { saveStatus.textContent = ''; }, 3000);
+        }
+
+        // Apertura e chiusura modale progetti
+        function openProjectsModal() {
+            renderProjectsList();
+            modal.style.display = 'flex';
+        }
+
+        function closeProjectsModal() {
+            modal.style.display = 'none';
+        }
+
+        // Caricamento dei file salvati nel pop-up
+        function renderProjectsList() {
+            let savedFiles = JSON.parse(localStorage.getItem('pascal_saved_files')) || {};
+            const keys = Object.keys(savedFiles);
+
+            if (keys.length === 0) {
+                projectsListContainer.innerHTML = `<p style="text-align:center; color:#8b949e; padding: 20px;">Nessun progetto salvato al momento.</p>`;
+                return;
+            }
+
+            let html = '';
+            keys.forEach(fileName => {
+                const fileData = savedFiles[fileName];
+                html += `
+                    <div class="project-item">
+                        <div class="project-info" onclick="loadFile('${fileName.replace(/'/g, "\\'")}')">
+                            <div class="project-name">${fileName}</div>
+                            <div class="project-preview">${fileData.content}</div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="btn-load" onclick="loadFile('${fileName.replace(/'/g, "\\'")}')">Apri</button>
+                            <button class="btn-delete" onclick="deleteFile('${fileName.replace(/'/g, "\\'")}')">Elimina</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            projectsListContainer.innerHTML = html;
+        }
+
+        // Carica un file salvato nell'editor
+        function loadFile(fileName) {
+            let savedFiles = JSON.parse(localStorage.getItem('pascal_saved_files')) || {};
+            if (savedFiles[fileName]) {
+                fileNameInput.value = fileName;
+                fileContent.value = savedFiles[fileName].content;
+                closeProjectsModal();
+            }
+        }
+
+        // Elimina un file salvato
+        function deleteFile(fileName) {
+            if (!confirm(`Vuoi davvero eliminare il file "${fileName}"?`)) return;
+
+            let savedFiles = JSON.parse(localStorage.getItem('pascal_saved_files')) || {};
+            delete savedFiles[fileName];
+            localStorage.setItem('pascal_saved_files', JSON.stringify(savedFiles));
+
+            renderProjectsList();
+        }
+
+        // Chiude la modale cliccando fuori dal box
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeProjectsModal();
+            }
+        }
+    </script>
+</body>
+</html>
