@@ -160,6 +160,23 @@
             flex-direction: column;
         }
 
+        /* Classe per la modale a schermo intero */
+        .panel.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border-radius: 0;
+            border: none;
+        }
+
+        .panel.fullscreen iframe,
+        .panel.fullscreen pre {
+            height: calc(100vh - 45px) !important;
+        }
+
         .panel-header {
             background-color: #21262d;
             padding: 10px 16px;
@@ -170,6 +187,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .btn-fullscreen {
+            background: transparent;
+            border: 1px solid #30363d;
+            color: #58a6ff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-fullscreen:hover {
+            background-color: #30363d;
+            color: #ffffff;
         }
 
         /* Iframe per il Design */
@@ -234,17 +266,19 @@
         <!-- Risultati: Design e Console -->
         <div class="output-grid">
             <!-- Pannello Design -->
-            <div class="panel">
+            <div class="panel" id="panel-design">
                 <div class="panel-header">
                     <span>🎨 Design / Anteprima Visiva</span>
+                    <button class="btn-fullscreen" onclick="toggleFullscreen('panel-design', this)">Schermo intero</button>
                 </div>
                 <iframe id="design-frame" sandbox="allow-scripts"></iframe>
             </div>
 
             <!-- Pannello Risultato / Console -->
-            <div class="panel">
+            <div class="panel" id="panel-console">
                 <div class="panel-header">
                     <span>💻 Risultato / Console</span>
+                    <button class="btn-fullscreen" onclick="toggleFullscreen('panel-console', this)">Schermo intero</button>
                 </div>
                 <pre id="console-output">Premi "Run ▶" per eseguire il codice...</pre>
             </div>
@@ -258,7 +292,6 @@
         const consoleOutput = document.getElementById('console-output');
         const toolbarBorder = document.getElementById('toolbar-border');
 
-        // Esempi pronti per ogni linguaggio
         const templates = {
             html: `<div style="font-family: sans-serif; text-align: center; padding: 30px;">
   <h2 style="color: #1f6feb;">Ciao da Pascal!</h2>
@@ -294,7 +327,6 @@ const somma = numeri.reduce((a, b) => a + b, 0);
 console.log("Array:", numeri);
 console.log("Somma totale:", somma);
 
-// Puoi anche generare HTML dinamico
 document.body.innerHTML = "<h2 style='font-family:sans-serif; color:#238636; padding:20px;'>Risultato JS: " + somma + "</h2>";`,
             python: `# Scrivi il tuo codice Python
 nome = "Pascal Team"
@@ -306,10 +338,10 @@ print("Calcolo 15 * 4 =", risultato)`
         };
 
         const langColors = {
-            html: '#f85149',   // Rosso
-            css: '#238636',    // Verde
-            js: '#d29922',     // Giallo
-            python: '#58a6ff'  // Blu
+            html: '#f85149',
+            css: '#238636',
+            js: '#d29922',
+            python: '#58a6ff'
         };
 
         function changeTemplate() {
@@ -332,13 +364,23 @@ print("Calcolo 15 * 4 =", risultato)`
             consoleOutput.appendChild(span);
         }
 
+        // Funzione per attivare/disattivare lo schermo intero dei singoli pannelli
+        function toggleFullscreen(panelId, btnElement) {
+            const panel = document.getElementById(panelId);
+            panel.classList.toggle('fullscreen');
+            if (panel.classList.contains('fullscreen')) {
+                btnElement.textContent = "Comprimi ✕";
+            } else {
+                btnElement.textContent = "Schermo intero";
+            }
+        }
+
         function runCode() {
             const lang = langSelect.value;
             const code = codeInput.value;
             consoleOutput.innerHTML = '';
 
             if (lang === 'html') {
-                // Cattura i console.log dentro l'iframe e li mostra nella console
                 const wrappedHtml = `
                     <script>
                         const origLog = console.log;
@@ -391,7 +433,6 @@ print("Calcolo 15 * 4 =", risultato)`
             }
         }
 
-        // Ascolta i messaggi provenienti dall'iframe (console.log / errori)
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'log') {
                 appendConsole('> ' + event.data.data);
@@ -400,7 +441,6 @@ print("Calcolo 15 * 4 =", risultato)`
             }
         });
 
-        // Esecuzione Python tramite Skulpt
         function runPython(code) {
             Sk.configure({
                 output: function(text) {
@@ -421,7 +461,6 @@ print("Calcolo 15 * 4 =", risultato)`
             });
         }
 
-        // Avvio iniziale con il template HTML
         window.onload = changeTemplate;
     </script>
 </body>
